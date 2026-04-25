@@ -1,0 +1,457 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+import {
+  fetchAccessories,
+  fetchAsset,
+  submitOrder,
+  type AccessoryPublic,
+  type AssetPublic,
+} from "../api";
+import { SupportForm } from "../components/SupportForm";
+
+type SectionKey = "support" | "info" | "warranty" | "manual" | "quick" | "accessories";
+
+export function ProductPage() {
+  const { uuid } = useParams<{ uuid: string }>();
+  const [asset, setAsset] = useState<AssetPublic | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState<SectionKey | null>(null);
+  const [accessories, setAccessories] = useState<AccessoryPublic[]>([]);
+
+  useEffect(() => {
+    if (!uuid) return;
+    fetchAsset(uuid).then(setAsset).catch((e) => setError(String(e)));
+    fetchAccessories(uuid).then(setAccessories).catch(() => setAccessories([]));
+  }, [uuid]);
+
+  if (error) {
+    return <main className="p-8 text-red-600">Kunne ikke laste produkt: {error}</main>;
+  }
+  if (!asset) {
+    return <main className="p-8 text-slate-500">Laster…</main>;
+  }
+
+  const brand = asset.firm.brand_color;
+
+  return (
+    <div
+      className="min-h-screen w-full"
+      style={{
+        background:
+          "linear-gradient(135deg, #1e293b 0%, #0f172a 100%) fixed",
+      }}
+    >
+      <div className="mx-auto max-w-md min-h-screen bg-white shadow-2xl">
+        {/* Brand header */}
+        <header className="px-6 pt-6 pb-2 flex items-center justify-center">
+          {asset.firm.logo_url ? (
+            <img src={asset.firm.logo_url} alt={asset.firm.name} className="h-10 w-auto" />
+          ) : (
+            <div
+              className="text-xl font-bold tracking-tight"
+              style={{ color: brand }}
+            >
+              {asset.firm.name}
+            </div>
+          )}
+        </header>
+
+        {/* Hero image */}
+        <div className="px-6 pt-4 pb-2 flex items-center justify-center min-h-[200px]">
+          {asset.product_model.image_url ? (
+            <img
+              src={asset.product_model.image_url}
+              alt={asset.product_model.name}
+              className="max-h-56 w-auto object-contain"
+            />
+          ) : (
+            <div className="h-40 w-40 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 text-sm">
+              Ingen bilde
+            </div>
+          )}
+        </div>
+
+        {/* Title block */}
+        <section className="px-6 text-center space-y-1 py-2">
+          <h1 className="text-lg font-bold text-slate-900">{asset.product_model.name}</h1>
+          {asset.product_model.sku && (
+            <p className="text-sm text-slate-500">{asset.product_model.sku}</p>
+          )}
+          <p className="text-sm text-slate-700">
+            <span className="font-medium">Serial:</span> {asset.serial_number}
+          </p>
+          {asset.location && (
+            <p className="text-sm text-slate-500">{asset.location}</p>
+          )}
+        </section>
+
+        {/* Action stack */}
+        <section className="px-6 py-5 space-y-3">
+          {accessories.length > 0 && (
+            <>
+              <ActionButton
+                label={`Bestill tilbehør (${accessories.length})`}
+                brand={brand}
+                isOpen={open === "accessories"}
+                onClick={() =>
+                  setOpen(open === "accessories" ? null : "accessories")
+                }
+              />
+              {open === "accessories" && uuid && (
+                <div className="rounded-xl border border-slate-200 p-3 -mt-1 bg-slate-50 space-y-3">
+                  {accessories.map((a) => (
+                    <AccessoryCard
+                      key={a.id}
+                      accessory={a}
+                      brand={brand}
+                      uuid={uuid}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          <ActionButton
+            label="Meld feil / kontakt support"
+            brand={brand}
+            isOpen={open === "support"}
+            onClick={() => setOpen(open === "support" ? null : "support")}
+          />
+          {open === "support" && (
+            <div className="rounded-xl border border-slate-200 p-4 -mt-1 bg-slate-50">
+              <SupportForm asset={asset} />
+            </div>
+          )}
+
+          <ActionButton
+            label="Produktinfo"
+            brand={brand}
+            isOpen={open === "info"}
+            onClick={() => setOpen(open === "info" ? null : "info")}
+          />
+          {open === "info" && (
+            <div className="rounded-xl border border-slate-200 p-4 -mt-1 bg-slate-50 text-sm text-slate-700 whitespace-pre-line">
+              {asset.product_model.description ?? "Ingen beskrivelse tilgjengelig."}
+            </div>
+          )}
+
+          <ActionButton
+            label="Garanti"
+            brand={brand}
+            isOpen={open === "warranty"}
+            onClick={() => setOpen(open === "warranty" ? null : "warranty")}
+          />
+          {open === "warranty" && (
+            <div className="rounded-xl border border-slate-200 p-4 -mt-1 bg-slate-50 text-sm text-slate-700 space-y-2">
+              <p className="whitespace-pre-line">
+                {asset.product_model.warranty_text ??
+                  `Standard garantibetingelser fra ${asset.firm.name}. Ta kontakt med support for spørsmål.`}
+              </p>
+              {asset.product_model.warranty_url && (
+                <a
+                  href={asset.product_model.warranty_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 font-medium"
+                  style={{ color: brand }}
+                >
+                  Åpne garantivilkår ↗
+                </a>
+              )}
+            </div>
+          )}
+
+          <ActionButton
+            label="Brukermanual"
+            brand={brand}
+            isOpen={open === "manual"}
+            onClick={() => setOpen(open === "manual" ? null : "manual")}
+          />
+          {open === "manual" && (
+            <div className="rounded-xl border border-slate-200 p-4 -mt-1 bg-slate-50 text-sm text-slate-700">
+              {asset.product_model.manual_url ? (
+                <a
+                  href={asset.product_model.manual_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 font-medium"
+                  style={{ color: brand }}
+                >
+                  Åpne brukermanual ↗
+                </a>
+              ) : (
+                "Manualen er ikke lastet opp ennå."
+              )}
+            </div>
+          )}
+
+          {asset.product_model.quick_guide_url && (
+            <>
+              <ActionButton
+                label="Hurtigveiledning"
+                brand={brand}
+                isOpen={open === "quick"}
+                onClick={() => setOpen(open === "quick" ? null : "quick")}
+              />
+              {open === "quick" && (
+                <div className="rounded-xl border border-slate-200 p-4 -mt-1 bg-slate-50 text-sm text-slate-700">
+                  <a
+                    href={asset.product_model.quick_guide_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-medium"
+                    style={{ color: brand }}
+                  >
+                    Åpne hurtigveiledning ↗
+                  </a>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+
+        <footer className="px-6 py-6 text-center text-xs text-slate-400">
+          Betala Link · Digital produktpass
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({
+  label,
+  brand,
+  isOpen,
+  onClick,
+}: {
+  label: string;
+  brand: string;
+  isOpen: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-xl text-white font-semibold py-3.5 px-4 flex items-center justify-between shadow-sm transition-transform active:scale-[0.99]"
+      style={{ backgroundColor: brand }}
+    >
+      <span>{label}</span>
+      <span
+        className={`text-xs transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        aria-hidden
+      >
+        ▼
+      </span>
+    </button>
+  );
+}
+
+function AccessoryCard({
+  accessory,
+  brand,
+  uuid,
+}: {
+  accessory: AccessoryPublic;
+  brand: string;
+  uuid: string;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [qty, setQty] = useState(1);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [bindingOk, setBindingOk] = useState(false);
+
+  function openConfirm(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(null);
+    setBindingOk(false);
+    setConfirmOpen(true);
+  }
+
+  async function send() {
+    if (!bindingOk) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await submitOrder(uuid, {
+        accessory_id: accessory.id,
+        quantity: qty,
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone || undefined,
+        note: note || undefined,
+      });
+      setDone(true);
+      setConfirmOpen(false);
+    } catch (ex) {
+      setErr(String(ex));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-3">
+      <div className="flex gap-3">
+        {accessory.image_url ? (
+          <img
+            src={accessory.image_url}
+            alt=""
+            className="h-14 w-14 object-contain rounded bg-slate-50 border border-slate-200"
+          />
+        ) : (
+          <div className="h-14 w-14 rounded bg-slate-100" />
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-semibold text-slate-900">{accessory.name}</div>
+          {accessory.description && (
+            <div className="text-xs text-slate-500 line-clamp-2">{accessory.description}</div>
+          )}
+          <div className="text-xs text-slate-600 mt-1">
+            {accessory.price_label ?? "Pris ved forespørsel"}
+            {accessory.unit ? ` / ${accessory.unit}` : ""}
+          </div>
+        </div>
+      </div>
+
+      {done ? (
+        <div className="mt-3 text-sm text-emerald-700 bg-emerald-50 rounded p-2">
+          Bestilling sendt. Vi tar kontakt på {email}.
+        </div>
+      ) : showForm ? (
+        <form onSubmit={openConfirm} className="mt-3 space-y-2">
+          {err && <div className="text-xs text-red-600">{err}</div>}
+          <div className="flex gap-2">
+            <label className="text-xs text-slate-600 flex items-center gap-1">
+              Antall
+              <input
+                type="number"
+                min={1}
+                max={999}
+                value={qty}
+                onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
+                className="w-20 border border-slate-300 rounded px-2 py-1 text-sm"
+              />
+            </label>
+          </div>
+          <input
+            required
+            placeholder="Ditt navn*"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+          />
+          <input
+            required
+            type="email"
+            placeholder="E-post*"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+          />
+          <input
+            placeholder="Telefon (valgfritt)"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+          />
+          <textarea
+            placeholder="Melding (valgfritt)"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            className="w-full border border-slate-300 rounded px-2 py-1.5 text-sm"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="flex-1 text-sm py-2 rounded border border-slate-300 text-slate-700"
+            >
+              Avbryt
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex-1 text-sm py-2 rounded text-white font-medium"
+              style={{ backgroundColor: brand }}
+            >
+              Gå videre
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="mt-3 w-full text-sm py-2 rounded-md text-white font-medium"
+          style={{ backgroundColor: brand }}
+        >
+          Bestill
+        </button>
+      )}
+
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !busy && setConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-lg bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-900">Bekreft bestilling</h3>
+            <div className="mt-3 rounded-md bg-slate-50 border border-slate-200 p-3 text-sm text-slate-700 space-y-1">
+              <div><span className="text-slate-500">Vare:</span> {accessory.name}</div>
+              <div><span className="text-slate-500">Antall:</span> {qty}{accessory.unit ? ` ${accessory.unit}` : ""}</div>
+              <div><span className="text-slate-500">Pris:</span> {accessory.price_label ?? "Pris ved forespørsel"}</div>
+              <div><span className="text-slate-500">Navn:</span> {name}</div>
+              <div><span className="text-slate-500">E-post:</span> {email}</div>
+              {phone && <div><span className="text-slate-500">Telefon:</span> {phone}</div>}
+            </div>
+            {err && <div className="mt-3 text-xs text-red-600">{err}</div>}
+            <label className="mt-4 flex items-start gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={bindingOk}
+                onChange={(e) => setBindingOk(e.target.checked)}
+                className="mt-0.5 h-4 w-4"
+              />
+              <span>
+                Jeg bekrefter at jeg legger inn en <strong>bindende bestilling</strong> av varene over.
+              </span>
+            </label>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                disabled={busy}
+                className="flex-1 text-sm py-2 rounded border border-slate-300 text-slate-700"
+              >
+                Avbryt
+              </button>
+              <button
+                type="button"
+                onClick={send}
+                disabled={!bindingOk || busy}
+                className="flex-1 text-sm py-2 rounded text-white font-medium disabled:opacity-50"
+                style={{ backgroundColor: brand }}
+              >
+                {busy ? "Sender…" : "Bekreft og send"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

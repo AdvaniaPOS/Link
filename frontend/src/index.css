@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 12mm Brother P-touch label – horizontal layout.
+   Tape physical width = 12 mm; printable area roughly 9 mm. We design at 12 mm
+   high and let the printer driver handle margins. */
+@media print {
+  @page {
+    size: 60mm 12mm;
+    margin: 0;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .label,
+  .label * {
+    visibility: visible;
+  }
+
+  .label {
+    position: absolute;
+    inset: 0;
+    width: 60mm;
+    height: 12mm;
+    display: flex;
+    align-items: center;
+    gap: 1mm;
+    padding: 0.5mm 1mm;
+    box-sizing: border-box;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
