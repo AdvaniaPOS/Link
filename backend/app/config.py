@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     admin_token: str = Field("dev-admin-token-change-me-please", alias="ADMIN_TOKEN")
     celery_eager: bool = Field(True, alias="CELERY_EAGER")
     uploads_dir: str = Field("uploads", alias="UPLOADS_DIR")
+    log_level: str = Field("INFO", alias="LOG_LEVEL")
+    debug_endpoints: bool = Field(False, alias="DEBUG_ENDPOINTS")
 
     @property
     def cors_origin_list(self) -> list[str]:

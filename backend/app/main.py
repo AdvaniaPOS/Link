@@ -17,8 +17,10 @@ from app.api.accessories import (
     router as accessories_router,
 )
 from app.config import get_settings
+from app.logging_config import configure_logging
 
 settings = get_settings()
+configure_logging(settings.log_level)
 
 app = FastAPI(title="Betala Link API", version="0.2.0")
 
@@ -55,19 +57,19 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/api/_debug/celery", tags=["meta"])
-def debug_celery() -> dict[str, object]:
-    import os
+if settings.debug_endpoints:
 
-    from app.config import get_settings
-    from app.workers.celery_app import celery_app
+    @app.get("/api/_debug/celery", tags=["meta"])
+    def debug_celery() -> dict[str, object]:
+        import os
 
-    s = get_settings()
-    return {
-        "cwd": os.getcwd(),
-        "settings_eager": s.celery_eager,
-        "settings_broker": s.celery_broker_url,
-        "celery_eager": celery_app.conf.task_always_eager,
-        "celery_broker": str(celery_app.conf.broker_url),
-        "key_prefix": s.resend_api_key[:8],
-    }
+        from app.workers.celery_app import celery_app
+
+        return {
+            "cwd": os.getcwd(),
+            "settings_eager": settings.celery_eager,
+            "settings_broker": settings.celery_broker_url,
+            "celery_eager": celery_app.conf.task_always_eager,
+            "celery_broker": str(celery_app.conf.broker_url),
+            "key_prefix": settings.resend_api_key[:8],
+        }
