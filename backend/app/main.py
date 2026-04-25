@@ -1,7 +1,14 @@
-from fastapi import FastAPI
+import logging
+import uuid
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.admin import router as admin_router
 from app.api.assets import router as assets_router
@@ -18,19 +25,58 @@ from app.api.accessories import (
 )
 from app.config import get_settings
 from app.logging_config import configure_logging
+from app.request_context import request_id_var
 
 settings = get_settings()
 configure_logging(settings.log_level)
+logger = logging.getLogger("app")
 
 app = FastAPI(title="Betala Link API", version="0.2.0")
 
+
+class RequestIdMiddleware(BaseHTTPMiddleware):
+    """Read or generate ``X-Request-ID`` and expose it via :mod:`request_context`.
+
+    Adds the same header on the response so clients/log aggregators can
+    correlate a single request end-to-end.
+    """
+
+    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        rid = request.headers.get("x-request-id") or uuid.uuid4().hex[:12]
+        token = request_id_var.set(rid)
+        try:
+            response = await call_next(request)
+        finally:
+            request_id_var.reset(token)
+        response.headers["X-Request-ID"] = rid
+        return response
+
+
+# Order matters: outer middlewares run first on request, last on response.
+# TrustedHost (if configured) runs before anything else.
+if settings.trusted_host_list:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
+
+app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_min_size)
+app.add_middleware(RequestIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],
 )
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
+    """Last-resort handler so 500s never leak stack traces to clients."""
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "request_id": request_id_var.get()},
+    )
 
 API_PREFIX = "/api"
 app.include_router(public_router, prefix=API_PREFIX)

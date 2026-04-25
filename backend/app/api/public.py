@@ -37,6 +37,30 @@ EXT_BY_TYPE = {
 }
 
 
+def _sniff_image_type(data: bytes) -> str | None:
+    """Return a normalised mime type by inspecting magic bytes, or None.
+
+    Defends against clients that lie about ``content_type`` (which is
+    completely client-controlled in multipart uploads).
+    """
+    if len(data) < 12:
+        return None
+    if data[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    # HEIC/HEIF: ftyp box at bytes 4..8, brand at 8..12
+    if data[4:8] == b"ftyp" and data[8:12] in (
+        b"heic", b"heix", b"hevc", b"hevx", b"mif1", b"msf1", b"heim", b"heis",
+    ):
+        return "image/heic"
+    return None
+
+
 @router.get("/{asset_uuid}", response_model=AssetPublic)
 def get_product_pass(asset_uuid: UUID, db: Session = Depends(get_db)) -> AssetPublic:
     asset = (
@@ -99,6 +123,14 @@ async def upload_attachment(
         raise HTTPException(status_code=400, detail="Empty file")
     if len(data) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File too large (max 10 MB)")
+
+    # Verify the file actually looks like an image (don't trust client header).
+    sniffed = _sniff_image_type(data)
+    if sniffed is None:
+        raise HTTPException(status_code=415, detail="File does not appear to be a valid image")
+    # Use the sniffed type to choose the extension on disk so a renamed .exe
+    # can never get a misleading file name.
+    content_type = sniffed
 
     settings = get_settings()
     uploads_dir = Path(settings.uploads_dir)

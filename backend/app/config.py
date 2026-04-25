@@ -24,10 +24,17 @@ class Settings(BaseSettings):
     uploads_dir: str = Field("uploads", alias="UPLOADS_DIR")
     log_level: str = Field("INFO", alias="LOG_LEVEL")
     debug_endpoints: bool = Field(False, alias="DEBUG_ENDPOINTS")
+    # Comma-separated list. Empty string disables TrustedHostMiddleware (dev default).
+    trusted_hosts: str = Field("", alias="TRUSTED_HOSTS")
+    gzip_min_size: int = Field(500, alias="GZIP_MIN_SIZE")
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def trusted_host_list(self) -> list[str]:
+        return [h.strip() for h in self.trusted_hosts.split(",") if h.strip()]
 
 
 @lru_cache

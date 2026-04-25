@@ -4,6 +4,7 @@ import base64
 import logging
 import mimetypes
 from datetime import datetime, timezone
+from html import escape as _h
 from pathlib import Path
 from uuid import UUID
 
@@ -19,6 +20,24 @@ from app.workers.celery_app import celery_app
 log = logging.getLogger(__name__)
 settings = get_settings()
 resend.api_key = settings.resend_api_key
+
+# Accept #rgb / #rrggbb / common named colors. Anything else is dropped to a
+# default to prevent CSS injection through admin-controlled brand colors.
+_COLOR_NAMES = {
+    "black", "white", "red", "green", "blue", "yellow", "orange", "purple",
+    "pink", "gray", "grey", "teal", "cyan", "magenta", "brown", "navy",
+}
+
+
+def _is_safe_css_color(value: str | None) -> bool:
+    if not value:
+        return False
+    v = value.strip().lower()
+    if v in _COLOR_NAMES:
+        return True
+    if v.startswith("#") and len(v) in (4, 7) and all(c in "0123456789abcdef" for c in v[1:]):
+        return True
+    return False
 
 
 def _load_local_attachment(attachment_url: str | None) -> dict | None:
@@ -59,27 +78,31 @@ def _build_email_payload(ticket: Ticket) -> dict:
             absolute = f"{settings.public_base_url.rstrip('/')}{ticket.attachment_url}"
             attachment_html = (
                 f'<p><strong>Vedlegg:</strong> bilde lagt ved e-posten '
-                f'(<a href="{absolute}">{absolute}</a>).</p>'
+                f'(<a href="{_h(absolute)}">{_h(absolute)}</a>).</p>'
             )
         else:
+            url = _h(ticket.attachment_url)
             attachment_html = (
-                f'<p><strong>Vedlegg:</strong> '
-                f'<a href="{ticket.attachment_url}">{ticket.attachment_url}</a></p>'
+                f'<p><strong>Vedlegg:</strong> <a href="{url}">{url}</a></p>'
             )
+
+    # Brand color is admin-controlled (CSS context); validate it loosely so we
+    # don't allow arbitrary CSS injection via a malicious admin payload.
+    brand_color = firm.brand_color if _is_safe_css_color(firm.brand_color) else "#0ea5e9"
 
     html = f"""
     <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #0f172a;">
-      <h2 style="color: {firm.brand_color};">Ny supporthenvendelse</h2>
-      <p><strong>Firma:</strong> {firm.name}</p>
-      <p><strong>Produkt:</strong> {product.name} ({product.sku or '-'})</p>
-      <p><strong>Serienummer:</strong> {asset.serial_number}</p>
-      <p><strong>Lokasjon:</strong> {asset.location or '-'}</p>
+      <h2 style="color: {brand_color};">Ny supporthenvendelse</h2>
+      <p><strong>Firma:</strong> {_h(firm.name)}</p>
+      <p><strong>Produkt:</strong> {_h(product.name)} ({_h(product.sku or '-')})</p>
+      <p><strong>Serienummer:</strong> {_h(asset.serial_number)}</p>
+      <p><strong>Lokasjon:</strong> {_h(asset.location or '-')}</p>
       <hr/>
-      <p><strong>Fra:</strong> {ticket.customer_name or '(uoppgitt)'} &lt;{ticket.customer_email}&gt;</p>
-      <p><strong>Telefon:</strong> {ticket.customer_phone or '-'}</p>
+      <p><strong>Fra:</strong> {_h(ticket.customer_name or '(uoppgitt)')} &lt;{_h(ticket.customer_email)}&gt;</p>
+      <p><strong>Telefon:</strong> {_h(ticket.customer_phone or '-')}</p>
       <p><strong>Foretrekker svar via:</strong> {'Telefon' if ticket.contact_preference == 'phone' else 'E-post'}</p>
       <p><strong>Melding:</strong></p>
-      <pre style="white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px;">{ticket.message}</pre>
+      <pre style="white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px;">{_h(ticket.message)}</pre>
       {attachment_html}
       <hr/>
       <p style="font-size: 12px; color: #64748b;">Sendt via Betala Link · Ticket {ticket.id}</p>
@@ -167,28 +190,31 @@ def _build_order_payload(order: AccessoryOrder) -> dict:
 
     note_html = (
         f'<p><strong>Melding:</strong></p><pre style="white-space: pre-wrap; '
-        f'background:#f8fafc; padding:12px; border-radius:6px;">{order.note}</pre>'
+        f'background:#f8fafc; padding:12px; border-radius:6px;">{_h(order.note)}</pre>'
         if order.note
         else ""
     )
     price_html = (
-        f"<p><strong>Pris:</strong> {accessory.price_label}</p>"
+        f"<p><strong>Pris:</strong> {_h(accessory.price_label)}</p>"
         if accessory.price_label
         else ""
     )
 
+    brand_color = firm.brand_color if _is_safe_css_color(firm.brand_color) else "#0ea5e9"
+    unit_str = (' ' + _h(accessory.unit)) if accessory.unit else ''
+
     html = f"""
     <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #0f172a;">
-      <h2 style="color: {firm.brand_color};">Ny tilbeh\u00f8rsbestilling</h2>
-      <p><strong>Vare:</strong> {accessory.name} ({accessory.sku or '-'})</p>
-      <p><strong>Antall:</strong> {order.quantity}{(' ' + accessory.unit) if accessory.unit else ''}</p>
+      <h2 style="color: {brand_color};">Ny tilbeh\u00f8rsbestilling</h2>
+      <p><strong>Vare:</strong> {_h(accessory.name)} ({_h(accessory.sku or '-')})</p>
+      <p><strong>Antall:</strong> {order.quantity}{unit_str}</p>
       {price_html}
       <hr/>
-      <p><strong>Fra enhet:</strong> {product.name} - serienr {asset.serial_number}</p>
-      <p><strong>Lokasjon:</strong> {asset.location or '-'}</p>
+      <p><strong>Fra enhet:</strong> {_h(product.name)} - serienr {_h(asset.serial_number)}</p>
+      <p><strong>Lokasjon:</strong> {_h(asset.location or '-')}</p>
       <hr/>
-      <p><strong>Bestilt av:</strong> {order.customer_name or '(uoppgitt)'} &lt;{order.customer_email}&gt;</p>
-      <p><strong>Telefon:</strong> {order.customer_phone or '-'}</p>
+      <p><strong>Bestilt av:</strong> {_h(order.customer_name or '(uoppgitt)')} &lt;{_h(order.customer_email)}&gt;</p>
+      <p><strong>Telefon:</strong> {_h(order.customer_phone or '-')}</p>
       {note_html}
       <hr/>
       <p style="font-size: 12px; color: #64748b;">Sendt via Betala Link \u00b7 Ordre {order.id}</p>

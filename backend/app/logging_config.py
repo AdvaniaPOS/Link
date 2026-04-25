@@ -10,7 +10,17 @@ from __future__ import annotations
 import logging
 from logging.config import dictConfig
 
+from app.request_context import request_id_var
+
 _CONFIGURED = False
+
+
+class _RequestIdFilter(logging.Filter):
+    """Inject the current request id (or '-') onto every record."""
+
+    def filter(self, record: logging.LogRecord) -> bool:  # noqa: D401
+        record.request_id = request_id_var.get()
+        return True
 
 
 def configure_logging(level: str = "INFO") -> None:
@@ -25,9 +35,12 @@ def configure_logging(level: str = "INFO") -> None:
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "filters": {
+                "request_id": {"()": _RequestIdFilter},
+            },
             "formatters": {
                 "default": {
-                    "format": "%(asctime)s %(levelname)-7s %(name)s: %(message)s",
+                    "format": "%(asctime)s %(levelname)-7s [%(request_id)s] %(name)s: %(message)s",
                     "datefmt": "%Y-%m-%d %H:%M:%S",
                 },
             },
@@ -35,6 +48,7 @@ def configure_logging(level: str = "INFO") -> None:
                 "console": {
                     "class": "logging.StreamHandler",
                     "formatter": "default",
+                    "filters": ["request_id"],
                 },
             },
             "root": {"level": level, "handlers": ["console"]},
