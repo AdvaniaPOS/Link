@@ -33,5 +33,9 @@ limiter = Limiter(
     default_limits=[_settings.rate_limit_default],
     enabled=_settings.rate_limit_enabled,
     storage_uri=_settings.rate_limit_storage_uri or "memory://",
-    headers_enabled=True,
+    # NOTE: headers_enabled requires every decorated route to accept a
+    # ``response: Response`` kwarg so slowapi can inject X-RateLimit-* headers.
+    # We rely on SlowAPIMiddleware + the 429 exception handler instead, which
+    # works with our existing route signatures.
+    headers_enabled=False,
 )
