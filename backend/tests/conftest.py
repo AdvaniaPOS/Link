@@ -26,6 +26,7 @@ os.environ.setdefault("CELERY_RESULT_BACKEND", "cache+memory://")
 os.environ.setdefault("RESEND_API_KEY", "re_test_key")
 os.environ.setdefault("ADMIN_TOKEN", "test-admin-token")
 os.environ.setdefault("LOG_LEVEL", "WARNING")
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 
 from fastapi.testclient import TestClient  # noqa: E402
 

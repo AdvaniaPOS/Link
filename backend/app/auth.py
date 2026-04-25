@@ -16,7 +16,6 @@ from app.database import get_db
 from app.models.user import User, UserRole
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 12  # 12h
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
@@ -39,12 +38,12 @@ def verify_password(password: str, hashed: str) -> bool:
 
 
 def _secret() -> str:
-    # Reuse admin_token as the JWT signing secret in dev. Override with a real
-    # secret in production via env.
-    return get_settings().admin_token
+    """JWT signing secret. Prefers JWT_SECRET, falls back to ADMIN_TOKEN."""
+    return get_settings().effective_jwt_secret
 
 
 def create_access_token(user: User) -> str:
+    settings = get_settings()
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user.id),
@@ -52,7 +51,7 @@ def create_access_token(user: User) -> str:
         "role": user.role.value,
         "firm_id": str(user.firm_id) if user.firm_id else None,
         "iat": int(now.timestamp()),
-        "exp": int((now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)).timestamp()),
+        "exp": int((now + timedelta(minutes=settings.access_token_minutes)).timestamp()),
     }
     return jwt.encode(payload, _secret(), algorithm=ALGORITHM)
 

@@ -3,13 +3,14 @@ import secrets
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import get_settings
 from app.database import get_db
 from app.models import Accessory, AccessoryOrder, Asset, FirmProduct, Ticket
+from app.rate_limit import limiter
 from app.schemas import (
     AccessoryOrderCreated,
     AccessoryOrderIn,
@@ -99,7 +100,9 @@ def get_product_pass(asset_uuid: UUID, db: Session = Depends(get_db)) -> AssetPu
     "/{asset_uuid}/attachment",
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit(lambda: get_settings().rate_limit_upload)
 async def upload_attachment(
+    request: Request,
     asset_uuid: UUID,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -156,7 +159,9 @@ async def upload_attachment(
     response_model=TicketCreated,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@limiter.limit(lambda: get_settings().rate_limit_public_post)
 def submit_support(
+    request: Request,
     asset_uuid: UUID,
     payload: SupportTicketIn,
     db: Session = Depends(get_db),
@@ -220,7 +225,9 @@ def list_asset_accessories(
     response_model=AccessoryOrderCreated,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@limiter.limit(lambda: get_settings().rate_limit_public_post)
 def submit_accessory_order(
+    request: Request,
     asset_uuid: UUID,
     payload: AccessoryOrderIn,
     db: Session = Depends(get_db),

@@ -8,6 +8,8 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.admin import router as admin_router
@@ -25,6 +27,7 @@ from app.api.accessories import (
 )
 from app.config import get_settings
 from app.logging_config import configure_logging
+from app.rate_limit import limiter
 from app.request_context import request_id_var
 
 settings = get_settings()
@@ -32,6 +35,18 @@ configure_logging(settings.log_level)
 logger = logging.getLogger("app")
 
 app = FastAPI(title="Betala Link API", version="0.2.0")
+
+# slowapi wires itself to the app via state + middleware + exception handler.
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def _rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return JSONResponse(
+        status_code=429,
+        content={"detail": f"Rate limit exceeded: {exc.detail}"},
+        headers={"Retry-After": "60"},
+    )
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):
@@ -58,6 +73,7 @@ if settings.trusted_host_list:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.trusted_host_list)
 
 app.add_middleware(GZipMiddleware, minimum_size=settings.gzip_min_size)
+app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(RequestIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
