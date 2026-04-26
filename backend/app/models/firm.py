@@ -17,6 +17,12 @@ class Firm(Base):
     logo_url: Mapped[str | None] = mapped_column(String(500))
     support_email_target: Mapped[str] = mapped_column(String(255), nullable=False)
 
+    # Customer-facing footer fields shown on the public product page.
+    footer_address: Mapped[str | None] = mapped_column(String(300))
+    footer_phone: Mapped[str | None] = mapped_column(String(50))
+    footer_email: Mapped[str | None] = mapped_column(String(255))
+    footer_website: Mapped[str | None] = mapped_column(String(300))
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -33,15 +33,42 @@ export function ProductPage() {
   }
 
   const brand = asset.firm.brand_color;
+  const bgUrl = asset.product_model.background_url;
+  const bgKind = asset.product_model.background_kind;
+  const firm = asset.firm;
+  const hasFooter = Boolean(
+    firm.footer_address || firm.footer_phone || firm.footer_email || firm.footer_website,
+  );
 
   return (
-    <div
-      className="min-h-screen w-full"
-      style={{
-        background:
-          "linear-gradient(135deg, #1e293b 0%, #0f172a 100%) fixed",
-      }}
-    >
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Decorative background (per product type) */}
+      {bgUrl ? (
+        bgKind === "video" ? (
+          <video
+            className="fixed inset-0 w-full h-full object-cover -z-10"
+            src={bgUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        ) : (
+          <div
+            className="fixed inset-0 -z-10 bg-cover bg-center"
+            style={{ backgroundImage: `url(${bgUrl})` }}
+          />
+        )
+      ) : (
+        <div
+          className="fixed inset-0 -z-10"
+          style={{
+            background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+          }}
+        />
+      )}
+      <div className="fixed inset-0 -z-10 bg-black/30" />
+
       <div className="mx-auto max-w-md min-h-screen bg-white shadow-2xl">
         {/* Brand header */}
         <header className="px-6 pt-6 pb-2 flex items-center justify-center">
@@ -212,8 +239,42 @@ export function ProductPage() {
           )}
         </section>
 
-        <footer className="px-6 py-6 text-center text-xs text-slate-400">
-          Betala Link · Digital produktpass
+        <footer
+          className="px-6 py-6 text-center text-xs text-white space-y-2"
+          style={{ backgroundColor: brand }}
+        >
+          {hasFooter ? (
+            <div className="space-y-1">
+              {firm.footer_phone && (
+                <div>
+                  <a href={`tel:${firm.footer_phone}`} className="hover:underline">
+                    ☎ {firm.footer_phone}
+                  </a>
+                </div>
+              )}
+              {firm.footer_email && (
+                <div>
+                  <a href={`mailto:${firm.footer_email}`} className="hover:underline">
+                    ✉ {firm.footer_email}
+                  </a>
+                </div>
+              )}
+              {firm.footer_address && <div>△ {firm.footer_address}</div>}
+              {firm.footer_website && (
+                <div>
+                  <a
+                    href={firm.footer_website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:underline"
+                  >
+                    ↗ {firm.footer_website.replace(/^https?:\/\//, "")}
+                  </a>
+                </div>
+              )}
+            </div>
+          ) : null}
+          <div className="opacity-70 pt-2">Betala Link · Digital produktpass</div>
         </footer>
       </div>
     </div>

@@ -37,6 +37,8 @@ def _to_effective_dict(fp: FirmProduct) -> dict:
         "sku": cat.sku,
         "category": cat.category,
         "image_url": cat.image_url,
+        "background_url": cat.background_url,
+        "background_kind": cat.background_kind,
         "description": fp.description if fp.description is not None else cat.description,
         "manual_url": fp.manual_url if fp.manual_url is not None else cat.manual_url,
         "quick_guide_url": (

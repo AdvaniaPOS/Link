@@ -57,7 +57,7 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </Field>
-          <Button type="submit" disabled={busy} className="w-full justify-center">
+          <Button type="submit" disabled={busy} size="lg" className="w-full">
             {busy ? "Logger inn…" : "Logg inn"}
           </Button>
         </form>

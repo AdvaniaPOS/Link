@@ -12,6 +12,10 @@ class FirmPublic(BaseModel):
     name: str
     brand_color: str
     logo_url: str | None = None
+    footer_address: str | None = None
+    footer_phone: str | None = None
+    footer_email: str | None = None
+    footer_website: str | None = None
 
 
 class ProductModelPublic(BaseModel):
@@ -23,6 +27,8 @@ class ProductModelPublic(BaseModel):
     description: str | None = None
     image_url: str | None = None
     category: str = "other"
+    background_url: str | None = None
+    background_kind: str = "image"
     manual_url: str | None = None
     quick_guide_url: str | None = None
     warranty_url: str | None = None
@@ -102,6 +108,10 @@ class FirmIn(BaseModel):
     brand_color: str = Field("#0F172A", max_length=9)
     logo_url: str | None = Field(None, max_length=500)
     support_email_target: EmailStr
+    footer_address: str | None = Field(None, max_length=300)
+    footer_phone: str | None = Field(None, max_length=50)
+    footer_email: EmailStr | None = None
+    footer_website: str | None = Field(None, max_length=300)
 
 
 class FirmUpdateIn(BaseModel):
@@ -109,6 +119,10 @@ class FirmUpdateIn(BaseModel):
     brand_color: str | None = Field(None, max_length=9)
     logo_url: str | None = Field(None, max_length=500)
     support_email_target: EmailStr | None = None
+    footer_address: str | None = Field(None, max_length=300)
+    footer_phone: str | None = Field(None, max_length=50)
+    footer_email: EmailStr | None = None
+    footer_website: str | None = Field(None, max_length=300)
 
 
 class FirmOut(BaseModel):
@@ -119,6 +133,10 @@ class FirmOut(BaseModel):
     brand_color: str
     logo_url: str | None = None
     support_email_target: EmailStr
+    footer_address: str | None = None
+    footer_phone: str | None = None
+    footer_email: EmailStr | None = None
+    footer_website: str | None = None
     created_at: datetime
 
 
@@ -130,6 +148,8 @@ class CatalogIn(BaseModel):
     sku: str | None = Field(None, max_length=100)
     category: str = Field("other", max_length=40)
     image_url: str | None = Field(None, max_length=500)
+    background_url: str | None = Field(None, max_length=500)
+    background_kind: Literal["image", "video"] = "image"
     description: str | None = Field(None, max_length=2000)
     manual_url: str | None = Field(None, max_length=500)
     quick_guide_url: str | None = Field(None, max_length=500)
@@ -142,6 +162,8 @@ class CatalogUpdateIn(BaseModel):
     sku: str | None = Field(None, max_length=100)
     category: str | None = Field(None, max_length=40)
     image_url: str | None = Field(None, max_length=500)
+    background_url: str | None = Field(None, max_length=500)
+    background_kind: Literal["image", "video"] | None = None
     description: str | None = Field(None, max_length=2000)
     manual_url: str | None = Field(None, max_length=500)
     quick_guide_url: str | None = Field(None, max_length=500)
@@ -157,6 +179,8 @@ class CatalogOut(BaseModel):
     sku: str | None = None
     category: str = "other"
     image_url: str | None = None
+    background_url: str | None = None
+    background_kind: str = "image"
     description: str | None = None
     manual_url: str | None = None
     quick_guide_url: str | None = None
@@ -203,6 +227,8 @@ class ProductModelOut(BaseModel):
     description: str | None = None
     image_url: str | None = None
     category: str = "other"
+    background_url: str | None = None
+    background_kind: str = "image"
     manual_url: str | None = None
     quick_guide_url: str | None = None
     warranty_url: str | None = None

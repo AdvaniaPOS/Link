@@ -185,13 +185,15 @@ function CatalogModal({
               sku: item.sku ?? "",
               category: item.category,
               image_url: item.image_url ?? "",
+              background_url: item.background_url ?? "",
+              background_kind: item.background_kind ?? "image",
               description: item.description ?? "",
               manual_url: item.manual_url ?? "",
               quick_guide_url: item.quick_guide_url ?? "",
               warranty_url: item.warranty_url ?? "",
               warranty_text: item.warranty_text ?? "",
             }
-          : { name: "", category: "other" },
+          : { name: "", category: "other", background_kind: "image" },
       );
     }
   }, [open, item]);
@@ -210,6 +212,8 @@ function CatalogModal({
         ...vals,
         sku: vals.sku || null,
         image_url: vals.image_url || null,
+        background_url: vals.background_url || null,
+        background_kind: vals.background_kind ?? "image",
         description: vals.description || null,
         manual_url: vals.manual_url || null,
         quick_guide_url: vals.quick_guide_url || null,
@@ -262,6 +266,25 @@ function CatalogModal({
             onChange={(e) => set("image_url", e.target.value)}
           />
         </Field>
+        <div className="grid grid-cols-[1fr_auto] gap-3">
+          <Field label="Bakgrunns-URL (valgfritt)" hint="Vises bak produktsiden. Bilde eller video.">
+            <Input
+              type="url"
+              value={vals.background_url ?? ""}
+              onChange={(e) => set("background_url", e.target.value)}
+              placeholder="https://..."
+            />
+          </Field>
+          <Field label="Type">
+            <Select
+              value={vals.background_kind ?? "image"}
+              onChange={(e) => set("background_kind", e.target.value as "image" | "video")}
+            >
+              <option value="image">Bilde</option>
+              <option value="video">Video</option>
+            </Select>
+          </Field>
+        </div>
         <Field label="Beskrivelse">
           <Textarea
             value={vals.description ?? ""}

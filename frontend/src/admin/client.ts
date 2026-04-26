@@ -89,6 +89,10 @@ export interface FirmOut {
   brand_color: string;
   logo_url: string | null;
   support_email_target: string;
+  footer_address: string | null;
+  footer_phone: string | null;
+  footer_email: string | null;
+  footer_website: string | null;
   created_at: string;
 }
 
@@ -122,6 +126,8 @@ export interface CatalogOut {
   sku: string | null;
   category: string;
   image_url: string | null;
+  background_url: string | null;
+  background_kind: "image" | "video";
   description: string | null;
   manual_url: string | null;
   quick_guide_url: string | null;
@@ -135,6 +141,8 @@ export interface CatalogWriteIn {
   sku?: string | null;
   category?: string;
   image_url?: string | null;
+  background_url?: string | null;
+  background_kind?: "image" | "video";
   description?: string | null;
   manual_url?: string | null;
   quick_guide_url?: string | null;

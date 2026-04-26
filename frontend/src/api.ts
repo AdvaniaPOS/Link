@@ -3,6 +3,10 @@ export interface FirmPublic {
   name: string;
   brand_color: string;
   logo_url: string | null;
+  footer_address: string | null;
+  footer_phone: string | null;
+  footer_email: string | null;
+  footer_website: string | null;
 }
 
 export interface ProductModelPublic {
@@ -12,6 +16,8 @@ export interface ProductModelPublic {
   description: string | null;
   image_url: string | null;
   category: string;
+  background_url: string | null;
+  background_kind: "image" | "video";
   manual_url: string | null;
   quick_guide_url: string | null;
   warranty_url: string | null;

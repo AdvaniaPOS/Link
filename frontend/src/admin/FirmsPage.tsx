@@ -146,6 +146,10 @@ function FirmModal({
   const [brand, setBrand] = useState("#0F172A");
   const [logo, setLogo] = useState("");
   const [supportEmail, setSupportEmail] = useState("");
+  const [footerAddress, setFooterAddress] = useState("");
+  const [footerPhone, setFooterPhone] = useState("");
+  const [footerEmail, setFooterEmail] = useState("");
+  const [footerWebsite, setFooterWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -155,6 +159,10 @@ function FirmModal({
     setBrand(firm?.brand_color ?? "#0F172A");
     setLogo(firm?.logo_url ?? "");
     setSupportEmail(firm?.support_email_target ?? "");
+    setFooterAddress(firm?.footer_address ?? "");
+    setFooterPhone(firm?.footer_phone ?? "");
+    setFooterEmail(firm?.footer_email ?? "");
+    setFooterWebsite(firm?.footer_website ?? "");
     setError(null);
   }, [open, firm]);
 
@@ -168,6 +176,10 @@ function FirmModal({
         brand_color: brand,
         logo_url: logo || null,
         support_email_target: supportEmail,
+        footer_address: footerAddress || null,
+        footer_phone: footerPhone || null,
+        footer_email: footerEmail || null,
+        footer_website: footerWebsite || null,
       };
       if (firm) await api.updateFirm(firm.id, payload);
       else await api.createFirm(payload);
@@ -205,6 +217,43 @@ function FirmModal({
             onChange={(e) => setSupportEmail(e.target.value)}
           />
         </Field>
+        <fieldset className="border-t border-slate-200 pt-3 space-y-3">
+          <legend className="text-sm font-semibold text-slate-700">
+            Bunntekst (vises på produktsiden)
+          </legend>
+          <Field label="Adresse">
+            <Input
+              value={footerAddress}
+              onChange={(e) => setFooterAddress(e.target.value)}
+              placeholder="C.F. Tietgens Boulevard 30A, 5220 Odense SØ"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Telefon">
+              <Input
+                value={footerPhone}
+                onChange={(e) => setFooterPhone(e.target.value)}
+                placeholder="+45 66 14 06 66"
+              />
+            </Field>
+            <Field label="E-post (offentlig)">
+              <Input
+                type="email"
+                value={footerEmail}
+                onChange={(e) => setFooterEmail(e.target.value)}
+                placeholder="info@firma.no"
+              />
+            </Field>
+          </div>
+          <Field label="Nettside">
+            <Input
+              type="url"
+              value={footerWebsite}
+              onChange={(e) => setFooterWebsite(e.target.value)}
+              placeholder="https://firma.no"
+            />
+          </Field>
+        </fieldset>
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Avbryt

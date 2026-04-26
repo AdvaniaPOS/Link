@@ -31,6 +31,13 @@ class ProductCatalog(Base):
     )
     image_url: Mapped[str | None] = mapped_column(String(500))
 
+    # Optional decorative background for the public product page.
+    # ``background_kind`` is "image" or "video".
+    background_url: Mapped[str | None] = mapped_column(String(500))
+    background_kind: Mapped[str] = mapped_column(
+        String(10), default="image", server_default="image", nullable=False
+    )
+
     # Default content firms inherit unless overridden.
     description: Mapped[str | None] = mapped_column(String(2000))
     manual_url: Mapped[str | None] = mapped_column(String(500))
@@ -97,6 +104,14 @@ class FirmProduct(Base):
     @property
     def image_url(self) -> str | None:
         return self.catalog.image_url
+
+    @property
+    def background_url(self) -> str | None:
+        return self.catalog.background_url
+
+    @property
+    def background_kind(self) -> str:
+        return self.catalog.background_kind
 
     @property
     def effective_description(self) -> str | None:
