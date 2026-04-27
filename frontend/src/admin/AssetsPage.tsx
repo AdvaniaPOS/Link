@@ -257,6 +257,7 @@ function AssetModal({
   const [serial, setSerial] = useState("");
   const [productId, setProductId] = useState("");
   const [location, setLocation] = useState("");
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -268,6 +269,7 @@ function AssetModal({
     setSerial(asset?.serial_number ?? "");
     setProductId(asset?.firm_product_id ?? presetProductId ?? products[0]?.id ?? "");
     setLocation(asset?.location ?? "");
+    setDiscordWebhookUrl(asset?.discord_webhook_url ?? "");
     setError(null);
   }, [open, asset, products, presetProductId]);
 
@@ -280,6 +282,7 @@ function AssetModal({
         firm_product_id: productId,
         serial_number: serial,
         location: location || null,
+        discord_webhook_url: discordWebhookUrl || null,
       };
       const created = asset
         ? await api.updateAsset(firmId, asset.id, payload)
@@ -288,6 +291,7 @@ function AssetModal({
       // Reset form for quick consecutive registrations from the same template.
       setSerial("");
       setLocation("");
+      setDiscordWebhookUrl("");
     } catch (err) {
       setError(err);
     } finally {
@@ -404,6 +408,14 @@ function AssetModal({
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="F.eks. Butikk 1, kassapunkt 2"
+          />
+        </Field>
+        <Field label="Discord webhook (valgfritt – overstyrer firma-default)">
+          <Input
+            type="url"
+            value={discordWebhookUrl}
+            onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+            placeholder="https://discord.com/api/webhooks/…"
           />
         </Field>
         <div className="flex justify-end gap-2 pt-2">

@@ -93,6 +93,8 @@ export interface FirmOut {
   footer_phone: string | null;
   footer_email: string | null;
   footer_website: string | null;
+  discord_enabled: boolean;
+  discord_webhook_url: string | null;
   created_at: string;
 }
 
@@ -164,6 +166,7 @@ export interface AssetOut {
   firm_product_id: string;
   serial_number: string;
   location: string | null;
+  discord_webhook_url: string | null;
   created_at: string;
 }
 

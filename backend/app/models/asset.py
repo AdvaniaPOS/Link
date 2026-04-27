@@ -21,6 +21,9 @@ class Asset(Base):
     )
     serial_number: Mapped[str] = mapped_column(String(100), nullable=False)
     location: Mapped[str | None] = mapped_column(String(200))
+    # Optional per-asset Discord webhook override. When set, takes precedence
+    # over firm.discord_webhook_url. Only used when firm.discord_enabled is True.
+    discord_webhook_url: Mapped[str | None] = mapped_column(String(500))
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

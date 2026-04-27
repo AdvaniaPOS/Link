@@ -8,6 +8,7 @@ from html import escape as _h
 from pathlib import Path
 from uuid import UUID
 
+import httpx
 import resend
 from celery.exceptions import MaxRetriesExceededError
 from sqlalchemy.orm import joinedload
@@ -20,6 +21,129 @@ from app.workers.celery_app import celery_app
 log = logging.getLogger(__name__)
 settings = get_settings()
 resend.api_key = settings.resend_api_key
+
+# Hard cap on Discord field sizes; Discord rejects fields > 1024 chars and
+# embed.description > 4096. We keep generous slack but stay safe.
+_DISCORD_FIELD_MAX = 1000
+_DISCORD_DESC_MAX = 3500
+
+
+def _truncate(value: str | None, limit: int) -> str:
+    if not value:
+        return "—"
+    s = str(value)
+    return s if len(s) <= limit else s[: limit - 1] + "…"
+
+
+def _resolve_discord_webhook(firm, asset) -> str | None:
+    """Pick the Discord webhook URL to use for this asset, or None.
+
+    Returns None if the firm hasn't opted in or no URL is configured.
+    Per-asset URL overrides the firm default when set.
+    """
+    if not getattr(firm, "discord_enabled", False):
+        return None
+    asset_url = (getattr(asset, "discord_webhook_url", None) or "").strip()
+    if asset_url:
+        return asset_url
+    firm_url = (getattr(firm, "discord_webhook_url", None) or "").strip()
+    return firm_url or None
+
+
+def _post_discord_webhook(url: str, payload: dict) -> None:
+    """POST to a Discord webhook. Best-effort; logs failures but never raises."""
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            r = client.post(url, json=payload)
+            if r.status_code >= 300:
+                log.warning(
+                    "Discord webhook returned %s: %s", r.status_code, r.text[:300]
+                )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Discord webhook failed: %s", exc)
+
+
+def _notify_discord_ticket(ticket: Ticket) -> None:
+    asset = ticket.asset
+    firm = asset.firm
+    url = _resolve_discord_webhook(firm, asset)
+    if not url:
+        return
+    product = asset.firm_product
+    contact_pref = (
+        "Telefon" if ticket.contact_preference == "phone" else "E-post"
+    )
+    fields = [
+        {"name": "Firma", "value": _truncate(firm.name, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Produkt", "value": _truncate(product.name, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Serienr", "value": _truncate(asset.serial_number, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Lokasjon", "value": _truncate(asset.location, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Fra", "value": _truncate(
+            f"{ticket.customer_name or '(uoppgitt)'} <{ticket.customer_email}>",
+            _DISCORD_FIELD_MAX,
+        ), "inline": False},
+        {"name": "Telefon", "value": _truncate(ticket.customer_phone, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Foretrekker", "value": contact_pref, "inline": True},
+        {"name": "Melding", "value": _truncate(ticket.message, _DISCORD_FIELD_MAX), "inline": False},
+    ]
+    if ticket.attachment_url:
+        if ticket.attachment_url.startswith("/uploads/"):
+            absolute = f"{settings.public_base_url.rstrip('/')}{ticket.attachment_url}"
+        else:
+            absolute = ticket.attachment_url
+        fields.append({"name": "Vedlegg", "value": _truncate(absolute, _DISCORD_FIELD_MAX), "inline": False})
+
+    embed = {
+        "title": "Ny supporthenvendelse",
+        "description": _truncate(
+            f"Ticket `{ticket.id}`", _DISCORD_DESC_MAX
+        ),
+        "color": 0x4F46E5,
+        "fields": fields,
+        "footer": {"text": "Betala Link"},
+    }
+    _post_discord_webhook(url, {"embeds": [embed]})
+
+
+def _notify_discord_order(order: AccessoryOrder) -> None:
+    asset = order.asset
+    firm = asset.firm
+    url = _resolve_discord_webhook(firm, asset)
+    if not url:
+        return
+    accessory = order.accessory
+    product = asset.firm_product
+    unit = f" {accessory.unit}" if accessory.unit else ""
+    fields = [
+        {"name": "Firma", "value": _truncate(firm.name, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Vare", "value": _truncate(
+            f"{accessory.name} ({accessory.sku or '-'})", _DISCORD_FIELD_MAX
+        ), "inline": True},
+        {"name": "Antall", "value": _truncate(f"{order.quantity}{unit}", _DISCORD_FIELD_MAX), "inline": True},
+    ]
+    if accessory.price_label:
+        fields.append({"name": "Pris", "value": _truncate(accessory.price_label, _DISCORD_FIELD_MAX), "inline": True})
+    fields += [
+        {"name": "Produkt", "value": _truncate(product.name, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Serienr", "value": _truncate(asset.serial_number, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Lokasjon", "value": _truncate(asset.location, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Bestilt av", "value": _truncate(
+            f"{order.customer_name or '(uoppgitt)'} <{order.customer_email}>",
+            _DISCORD_FIELD_MAX,
+        ), "inline": False},
+        {"name": "Telefon", "value": _truncate(order.customer_phone, _DISCORD_FIELD_MAX), "inline": True},
+    ]
+    if order.note:
+        fields.append({"name": "Melding", "value": _truncate(order.note, _DISCORD_FIELD_MAX), "inline": False})
+
+    embed = {
+        "title": "Ny tilbehørsbestilling",
+        "description": _truncate(f"Ordre `{order.id}`", _DISCORD_DESC_MAX),
+        "color": 0x10B981,
+        "fields": fields,
+        "footer": {"text": "Betala Link"},
+    }
+    _post_discord_webhook(url, {"embeds": [embed]})
 
 # Accept #rgb / #rrggbb / common named colors. Anything else is dropped to a
 # default to prevent CSS injection through admin-controlled brand colors.
@@ -166,6 +290,7 @@ def send_resend_email(self, ticket_id: str) -> dict:
             ticket.sent_at = datetime.now(timezone.utc)
             ticket.last_error = None
             db.commit()
+            _notify_discord_ticket(ticket)
             return {"status": "sent", "message_id": ticket.resend_message_id}
         except Exception as exc:  # noqa: BLE001
             ticket.last_error = str(exc)[:2000]
@@ -270,6 +395,7 @@ def send_accessory_order_email(self, order_id: str) -> dict:
             order.sent_at = datetime.now(timezone.utc)
             order.last_error = None
             db.commit()
+            _notify_discord_order(order)
             return {"status": "sent", "message_id": order.resend_message_id}
         except Exception as exc:  # noqa: BLE001
             order.last_error = str(exc)[:2000]

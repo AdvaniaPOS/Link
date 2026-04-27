@@ -150,6 +150,8 @@ function FirmModal({
   const [footerPhone, setFooterPhone] = useState("");
   const [footerEmail, setFooterEmail] = useState("");
   const [footerWebsite, setFooterWebsite] = useState("");
+  const [discordEnabled, setDiscordEnabled] = useState(false);
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -163,6 +165,8 @@ function FirmModal({
     setFooterPhone(firm?.footer_phone ?? "");
     setFooterEmail(firm?.footer_email ?? "");
     setFooterWebsite(firm?.footer_website ?? "");
+    setDiscordEnabled(firm?.discord_enabled ?? false);
+    setDiscordWebhookUrl(firm?.discord_webhook_url ?? "");
     setError(null);
   }, [open, firm]);
 
@@ -180,6 +184,8 @@ function FirmModal({
         footer_phone: footerPhone || null,
         footer_email: footerEmail || null,
         footer_website: footerWebsite || null,
+        discord_enabled: discordEnabled,
+        discord_webhook_url: discordWebhookUrl || null,
       };
       if (firm) await api.updateFirm(firm.id, payload);
       else await api.createFirm(payload);
@@ -253,6 +259,33 @@ function FirmModal({
               placeholder="https://firma.no"
             />
           </Field>
+        </fieldset>
+        <fieldset className="border-t border-slate-200 pt-3 space-y-3">
+          <legend className="text-sm font-semibold text-slate-700">
+            Discord-varsling
+          </legend>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={discordEnabled}
+              onChange={(e) => setDiscordEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            <span>Aktiver Discord-varsling for dette firmaet</span>
+          </label>
+          <Field label="Discord webhook URL (standard for firmaet)">
+            <Input
+              type="url"
+              value={discordWebhookUrl}
+              onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+              placeholder="https://discord.com/api/webhooks/…"
+              disabled={!discordEnabled}
+            />
+          </Field>
+          <p className="text-xs text-slate-500">
+            Sendes for nye support- og tilbehørsbestillinger. Hver kasse kan
+            overstyre denne URL-en for å sende til en annen kanal.
+          </p>
         </fieldset>
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>

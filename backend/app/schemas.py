@@ -112,6 +112,8 @@ class FirmIn(BaseModel):
     footer_phone: str | None = Field(None, max_length=50)
     footer_email: EmailStr | None = None
     footer_website: str | None = Field(None, max_length=300)
+    discord_enabled: bool = False
+    discord_webhook_url: str | None = Field(None, max_length=500)
 
 
 class FirmUpdateIn(BaseModel):
@@ -123,6 +125,8 @@ class FirmUpdateIn(BaseModel):
     footer_phone: str | None = Field(None, max_length=50)
     footer_email: EmailStr | None = None
     footer_website: str | None = Field(None, max_length=300)
+    discord_enabled: bool | None = None
+    discord_webhook_url: str | None = Field(None, max_length=500)
 
 
 class FirmOut(BaseModel):
@@ -137,6 +141,8 @@ class FirmOut(BaseModel):
     footer_phone: str | None = None
     footer_email: EmailStr | None = None
     footer_website: str | None = None
+    discord_enabled: bool = False
+    discord_webhook_url: str | None = None
     created_at: datetime
 
 
@@ -245,12 +251,14 @@ class AssetIn(BaseModel):
     firm_product_id: UUID
     serial_number: str = Field(..., max_length=100)
     location: str | None = Field(None, max_length=200)
+    discord_webhook_url: str | None = Field(None, max_length=500)
 
 
 class AssetUpdateIn(BaseModel):
     firm_product_id: UUID | None = None
     serial_number: str | None = Field(None, max_length=100)
     location: str | None = Field(None, max_length=200)
+    discord_webhook_url: str | None = Field(None, max_length=500)
 
 
 class AssetOut(BaseModel):
@@ -261,6 +269,7 @@ class AssetOut(BaseModel):
     firm_product_id: UUID
     serial_number: str
     location: str | None = None
+    discord_webhook_url: str | None = None
     created_at: datetime
 
 

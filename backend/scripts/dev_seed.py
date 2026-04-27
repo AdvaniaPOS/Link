@@ -94,7 +94,7 @@ def main() -> None:
 
         print("Seed OK")
         print(f"  Firm:    {firm.id}  {firm.name}")
-        print(f"  Product: {product.id}  {product.name}")
+        print(f"  Product: {firm_product.id}  {catalog.name}")
         print(f"  Asset:   {asset.id}  ({asset.serial_number})")
         print()
         print("Logins (passord: changeme123):")
