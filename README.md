@@ -53,7 +53,7 @@ uv run alembic revision --autogenerate -m "init"
 uv run alembic upgrade head
 
 # Kjør API
-uv run uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 18000
 ```
 
 ### 3. Celery-worker (egen terminal)
@@ -73,7 +73,7 @@ npm install
 npm run dev
 ```
 
-Åpne <http://localhost:5173/p/{asset-uuid}> for kundevisning eller <http://localhost:5173/admin/labels>
+Åpne <http://localhost:51730/p/{asset-uuid}> for kundevisning eller <http://localhost:51730/admin/labels>
 for å skrive ut 12mm-etiketter.
 
 ## Resend-domeneverifisering (før produksjon)

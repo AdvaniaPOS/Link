@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     resend_from_name: str = Field("Betala Link", alias="RESEND_FROM_NAME")
 
     public_base_url: str = Field("https://betala.link", alias="PUBLIC_BASE_URL")
-    cors_origins: str = Field("http://localhost:5173", alias="CORS_ORIGINS")
+    cors_origins: str = Field("http://localhost:51730", alias="CORS_ORIGINS")
     admin_token: str = Field("dev-admin-token-change-me-please", alias="ADMIN_TOKEN")
     # Dedicated JWT signing secret. Falls back to admin_token when unset so we
     # don't break existing dev .env files; production MUST set its own value.

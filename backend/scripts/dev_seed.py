@@ -101,8 +101,8 @@ def main() -> None:
         print("  super@betala.link   (super_admin)")
         print("  admin@betala.link   (firm_admin – Betala AS)")
         print()
-        print(f"Kundevisning: http://localhost:5173/p/{asset.id}")
-        print("Admin-portal: http://localhost:5173/admin")
+        print(f"Kundevisning: http://localhost:51730/p/{asset.id}")
+        print("Admin-portal: http://localhost:51730/admin")
     finally:
         db.close()
 

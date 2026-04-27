@@ -11,7 +11,7 @@ source .venv/bin/activate            # Windows: .\.venv\Scripts\Activate.ps1
 pip install -e .[dev]                 # or: uv sync
 cp .env.example .env                  # then edit secrets
 alembic upgrade head
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 18000
 ```
 
 Frontend (Node 20+):
