@@ -243,6 +243,7 @@ export function ProductPage() {
           className="px-6 py-6 text-center text-xs text-white space-y-2"
           style={{ backgroundColor: brand }}
         >
+          <div className="text-sm font-semibold tracking-wide">{firm.name}</div>
           {hasFooter ? (
             <div className="space-y-1">
               {firm.footer_phone && (
