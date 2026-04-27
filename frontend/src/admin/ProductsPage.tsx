@@ -64,6 +64,7 @@ export function ProductsPage() {
   }
   useEffect(() => {
     if (firmId) void reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firmId]);
 
   const subscribedCatalogIds = useMemo(

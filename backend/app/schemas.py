@@ -299,6 +299,7 @@ class TicketOut(BaseModel):
 
 class AccessoryPublic(BaseModel):
     """Customer-facing accessory shape (returned from /api/p/{uuid}/accessories)."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID

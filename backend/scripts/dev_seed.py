@@ -6,9 +6,9 @@ Usage:
 
 from __future__ import annotations
 
+from app import models  # noqa: F401  – ensure model classes register with metadata
 from app.auth import hash_password
 from app.database import Base, SessionLocal, engine
-from app import models  # noqa: F401  – ensure model classes register with metadata
 from app.models import Asset, Firm, FirmProduct, ProductCatalog, User, UserRole
 
 
@@ -29,9 +29,7 @@ def main() -> None:
             db.flush()
 
         catalog = (
-            db.query(ProductCatalog)
-            .filter(ProductCatalog.name == "Betala v3 Terminal")
-            .first()
+            db.query(ProductCatalog).filter(ProductCatalog.name == "Betala v3 Terminal").first()
         )
         if catalog is None:
             catalog = ProductCatalog(

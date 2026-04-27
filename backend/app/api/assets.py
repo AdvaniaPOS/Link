@@ -20,12 +20,7 @@ def list_assets(
     user: User = Depends(get_current_user),
 ) -> list[Asset]:
     require_firm_access(firm_id, user)
-    return (
-        db.query(Asset)
-        .filter(Asset.firm_id == firm_id)
-        .order_by(Asset.created_at.desc())
-        .all()
-    )
+    return db.query(Asset).filter(Asset.firm_id == firm_id).order_by(Asset.created_at.desc()).all()
 
 
 @router.post("", response_model=AssetOut, status_code=status.HTTP_201_CREATED)
@@ -61,9 +56,7 @@ def update_asset(
     user: User = Depends(get_current_user),
 ) -> Asset:
     require_firm_access(firm_id, user)
-    asset = (
-        db.query(Asset).filter(Asset.id == asset_id, Asset.firm_id == firm_id).first()
-    )
+    asset = db.query(Asset).filter(Asset.id == asset_id, Asset.firm_id == firm_id).first()
     if asset is None:
         raise HTTPException(status_code=404, detail="Asset not found")
     data = payload.model_dump(exclude_unset=True)
@@ -90,9 +83,7 @@ def delete_asset(
     user: User = Depends(get_current_user),
 ) -> None:
     require_firm_access(firm_id, user)
-    asset = (
-        db.query(Asset).filter(Asset.id == asset_id, Asset.firm_id == firm_id).first()
-    )
+    asset = db.query(Asset).filter(Asset.id == asset_id, Asset.firm_id == firm_id).first()
     if asset is None:
         raise HTTPException(status_code=404, detail="Asset not found")
     db.delete(asset)

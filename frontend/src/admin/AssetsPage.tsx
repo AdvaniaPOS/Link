@@ -35,6 +35,7 @@ export function AssetsPage() {
   }
   useEffect(() => {
     if (firmId) void reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firmId]);
 
   async function del(id: string) {

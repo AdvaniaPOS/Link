@@ -135,8 +135,4 @@ class FirmProduct(Base):
 
     @property
     def effective_warranty_text(self) -> str | None:
-        return (
-            self.warranty_text
-            if self.warranty_text is not None
-            else self.catalog.warranty_text
-        )
+        return self.warranty_text if self.warranty_text is not None else self.catalog.warranty_text

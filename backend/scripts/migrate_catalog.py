@@ -15,25 +15,22 @@ Idempotent: safe to re-run on a fresh DB (no-ops if old tables don't exist).
 
 from __future__ import annotations
 
-import sys
 import sqlite3
+import sys
 from pathlib import Path
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.database import Base, engine  # noqa: E402
 import app.models  # noqa: E402,F401  - register all models on Base
-
+from app.database import Base, engine  # noqa: E402
 
 DB_PATH = ROOT / "betala.db"
 
 
 def _table_exists(conn: sqlite3.Connection, name: str) -> bool:
-    cur = conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)
-    )
+    cur = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,))
     return cur.fetchone() is not None
 
 
@@ -46,9 +43,7 @@ def main() -> None:
     raw.row_factory = sqlite3.Row
 
     # --- snapshot ---
-    has_old = _table_exists(raw, "product_models") and "firm_id" in _columns(
-        raw, "product_models"
-    )
+    has_old = _table_exists(raw, "product_models") and "firm_id" in _columns(raw, "product_models")
     if not has_old:
         # New schema already in place; just ensure tables exist and exit.
         Base.metadata.create_all(bind=engine)

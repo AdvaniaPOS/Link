@@ -26,7 +26,14 @@ from app.workers.tasks import send_accessory_order_email, send_resend_email
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/p", tags=["public"])
 
-ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "image/gif"}
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+    "image/gif",
+}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 EXT_BY_TYPE = {
     "image/jpeg": ".jpg",
@@ -56,7 +63,14 @@ def _sniff_image_type(data: bytes) -> str | None:
         return "image/webp"
     # HEIC/HEIF: ftyp box at bytes 4..8, brand at 8..12
     if data[4:8] == b"ftyp" and data[8:12] in (
-        b"heic", b"heix", b"hevc", b"hevx", b"mif1", b"msf1", b"heim", b"heis",
+        b"heic",
+        b"heix",
+        b"hevc",
+        b"hevx",
+        b"mif1",
+        b"msf1",
+        b"heim",
+        b"heis",
     ):
         return "image/heic"
     return None
@@ -196,9 +210,7 @@ def submit_support(
 
 
 @router.get("/{asset_uuid}/accessories", response_model=list[AccessoryPublic])
-def list_asset_accessories(
-    asset_uuid: UUID, db: Session = Depends(get_db)
-) -> list[Accessory]:
+def list_asset_accessories(asset_uuid: UUID, db: Session = Depends(get_db)) -> list[Accessory]:
     """Accessories available for the product behind this asset.
 
     Returns firm-wide accessories (firm_product_id is NULL) plus accessories
@@ -248,10 +260,7 @@ def submit_accessory_order(
     )
     if accessory is None:
         raise HTTPException(status_code=404, detail="Accessory not available")
-    if (
-        accessory.firm_product_id is not None
-        and accessory.firm_product_id != asset.firm_product_id
-    ):
+    if accessory.firm_product_id is not None and accessory.firm_product_id != asset.firm_product_id:
         raise HTTPException(status_code=400, detail="Accessory not for this product")
 
     order = AccessoryOrder(

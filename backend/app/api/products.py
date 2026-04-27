@@ -45,9 +45,7 @@ def _to_effective_dict(fp: FirmProduct) -> dict:
             fp.quick_guide_url if fp.quick_guide_url is not None else cat.quick_guide_url
         ),
         "warranty_url": fp.warranty_url if fp.warranty_url is not None else cat.warranty_url,
-        "warranty_text": (
-            fp.warranty_text if fp.warranty_text is not None else cat.warranty_text
-        ),
+        "warranty_text": (fp.warranty_text if fp.warranty_text is not None else cat.warranty_text),
         "overrides": {f: getattr(fp, f) for f in OVERRIDE_FIELDS},
         "created_at": fp.created_at,
     }
@@ -87,11 +85,11 @@ def link_firm_product(
     db.add(fp)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=409, detail="Firma abonnerer allerede på dette produktet."
-        )
+        ) from exc
     db.refresh(fp)
     fp = (
         db.query(FirmProduct)
@@ -147,9 +145,9 @@ def unlink_firm_product(
     try:
         db.delete(fp)
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Firma har enheter knyttet til dette produktet. Slett enhetene først.",
-        )
+        ) from exc

@@ -1,4 +1,5 @@
 """Add template/manual/warranty columns to product_models in SQLite dev DB."""
+
 from sqlalchemy import text
 
 from app.database import engine

@@ -66,9 +66,9 @@ def delete_catalog(
     try:
         db.delete(item)
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Catalog item is in use by one or more firms; remove subscriptions first.",
-        )
+        ) from exc

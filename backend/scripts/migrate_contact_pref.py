@@ -1,4 +1,5 @@
 """Add contact_preference column to tickets in SQLite dev DB."""
+
 from sqlalchemy import text
 
 from app.database import engine

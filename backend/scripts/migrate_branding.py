@@ -2,6 +2,7 @@
 
 Idempotent: skips columns that already exist.
 """
+
 from sqlalchemy import text
 
 from app.database import engine

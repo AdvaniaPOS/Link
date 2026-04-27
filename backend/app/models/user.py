@@ -9,7 +9,7 @@ from app.database import Base
 from app.db_types import UUIDType
 
 
-class UserRole(str, enum.Enum):
+class UserRole(str, enum.Enum):  # noqa: UP042 - keep str+Enum for stable serialization
     super_admin = "super_admin"
     firm_admin = "firm_admin"
 

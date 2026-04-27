@@ -9,7 +9,7 @@ from app.database import Base
 from app.db_types import UUIDType
 
 
-class TicketStatus(str, enum.Enum):
+class TicketStatus(str, enum.Enum):  # noqa: UP042 - keep str+Enum for stable serialization
     pending = "pending"
     sent = "sent"
     failed = "failed"

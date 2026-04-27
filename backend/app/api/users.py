@@ -52,9 +52,11 @@ def create_user(
     if role == UserRole.super_admin and payload.firm_id is not None:
         raise HTTPException(status_code=400, detail="super_admin must not have firm_id")
 
-    if payload.firm_id is not None:
-        if db.query(Firm).filter(Firm.id == payload.firm_id).first() is None:
-            raise HTTPException(status_code=400, detail="Firm not found")
+    if (
+        payload.firm_id is not None
+        and db.query(Firm).filter(Firm.id == payload.firm_id).first() is None
+    ):
+        raise HTTPException(status_code=400, detail="Firm not found")
 
     if db.query(User).filter(User.email == payload.email.lower()).first():
         raise HTTPException(status_code=409, detail="Email already in use")

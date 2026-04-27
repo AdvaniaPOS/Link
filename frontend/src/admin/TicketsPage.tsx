@@ -25,6 +25,7 @@ export function TicketsPage() {
   }
   useEffect(() => {
     void reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firmId, filter]);
 
   async function retry(id: string) {

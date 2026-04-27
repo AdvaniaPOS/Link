@@ -1,5 +1,6 @@
 import logging
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,11 +8,16 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.api.accessories import (
+    orders_router as accessory_orders_router,
+)
+from app.api.accessories import (
+    router as accessories_router,
+)
 from app.api.admin import router as admin_router
 from app.api.assets import router as assets_router
 from app.api.auth import router as auth_router
@@ -21,10 +27,6 @@ from app.api.products import router as products_router
 from app.api.public import router as public_router
 from app.api.tickets import router as tickets_router
 from app.api.users import router as users_router
-from app.api.accessories import (
-    orders_router as accessory_orders_router,
-    router as accessories_router,
-)
 from app.config import get_settings
 from app.logging_config import configure_logging
 from app.rate_limit import limiter
@@ -93,6 +95,7 @@ async def _unhandled_exception(request: Request, exc: Exception) -> JSONResponse
         status_code=500,
         content={"detail": "Internal server error", "request_id": request_id_var.get()},
     )
+
 
 API_PREFIX = "/api"
 app.include_router(public_router, prefix=API_PREFIX)
