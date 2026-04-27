@@ -61,6 +61,54 @@ def _post_discord_webhook(url: str, payload: dict) -> None:
         log.warning("Discord webhook failed: %s", exc)
 
 
+def notify_discord_quick_support(asset: Asset) -> tuple[bool, str | None]:
+    """Send a "needs help now" Discord notification for a single asset.
+
+    Synchronous and strict: returns (delivered, error_message). The endpoint
+    surfaces failures to the caller so the festival operator sees a clear
+    error if the webhook is misconfigured or down.
+    """
+    firm = asset.firm
+    url = _resolve_discord_webhook(firm, asset)
+    if not url:
+        return False, "Discord-varsling er ikke aktivert eller webhook mangler."
+    product = asset.firm_product
+    fields = [
+        {"name": "Firma", "value": _truncate(firm.name, _DISCORD_FIELD_MAX), "inline": True},
+        {"name": "Produkt", "value": _truncate(product.name, _DISCORD_FIELD_MAX), "inline": True},
+        {
+            "name": "Serienr",
+            "value": _truncate(asset.serial_number, _DISCORD_FIELD_MAX),
+            "inline": True,
+        },
+        {
+            "name": "Lokasjon",
+            "value": _truncate(asset.location, _DISCORD_FIELD_MAX),
+            "inline": True,
+        },
+    ]
+    embed = {
+        "title": "🚨 Trenger hjelp NÅ",
+        "description": "En enhet har bedt om assistanse via Quick support.",
+        "color": 0xDC2626,
+        "fields": fields,
+        "footer": {"text": "Betala Link · Quick support"},
+    }
+    payload = {"content": "@here", "embeds": [embed]}
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            r = client.post(url, json=payload)
+        if r.status_code >= 300:
+            log.warning(
+                "Quick support webhook returned %s: %s", r.status_code, r.text[:300]
+            )
+            return False, f"Discord svarte {r.status_code}."
+        return True, None
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Quick support webhook failed: %s", exc)
+        return False, "Kunne ikke nå Discord."
+
+
 def _notify_discord_ticket(ticket: Ticket) -> None:
     asset = ticket.asset
     firm = asset.firm

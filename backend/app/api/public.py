@@ -21,7 +21,11 @@ from app.schemas import (
     SupportTicketIn,
     TicketCreated,
 )
-from app.workers.tasks import send_accessory_order_email, send_resend_email
+from app.workers.tasks import (
+    notify_discord_quick_support,
+    send_accessory_order_email,
+    send_resend_email,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/p", tags=["public"])
@@ -94,6 +98,7 @@ def get_product_pass(asset_uuid: UUID, db: Session = Depends(get_db)) -> AssetPu
         id=asset.id,
         serial_number=asset.serial_number,
         location=asset.location,
+        quick_support_enabled=asset.quick_support_enabled,
         firm=FirmPublic.model_validate(asset.firm),
         product_model=ProductModelPublic(
             id=fp.id,
@@ -207,6 +212,45 @@ def submit_support(
         logger.warning("Could not enqueue ticket %s: %s", ticket.id, exc)
 
     return ticket
+
+
+@router.post(
+    "/{asset_uuid}/quick-support",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+@limiter.limit(lambda: get_settings().rate_limit_public_post)
+def submit_quick_support(
+    request: Request,
+    asset_uuid: UUID,
+    db: Session = Depends(get_db),
+) -> dict:
+    """Fire a one-tap Discord notification for festival/event units.
+
+    No body, no email, no ticket persisted. Requires the asset to have
+    Quick Support enabled by the firm admin AND a working Discord webhook
+    configured (per asset or per firm). Returns a clear error to the caller
+    if either is missing so the operator notices misconfiguration.
+    """
+    asset = (
+        db.query(Asset)
+        .options(
+            joinedload(Asset.firm),
+            joinedload(Asset.firm_product).joinedload(FirmProduct.catalog),
+        )
+        .filter(Asset.id == asset_uuid)
+        .first()
+    )
+    if asset is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Asset not found")
+    if not asset.quick_support_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Quick support er ikke aktivert for denne enheten.",
+        )
+    delivered, err = notify_discord_quick_support(asset)
+    if not delivered:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=err or "Discord-feil")
+    return {"ok": True, "delivered": True}
 
 
 @router.get("/{asset_uuid}/accessories", response_model=list[AccessoryPublic])

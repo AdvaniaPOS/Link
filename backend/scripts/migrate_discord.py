@@ -14,6 +14,7 @@ FIRM_COLUMNS = [
 
 ASSET_COLUMNS = [
     ("discord_webhook_url", "VARCHAR(500)"),
+    ("quick_support_enabled", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 

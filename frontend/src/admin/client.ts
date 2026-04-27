@@ -167,6 +167,7 @@ export interface AssetOut {
   serial_number: string;
   location: string | null;
   discord_webhook_url: string | null;
+  quick_support_enabled: boolean;
   created_at: string;
 }
 

@@ -5,6 +5,7 @@ import {
   fetchAccessories,
   fetchAsset,
   submitOrder,
+  submitQuickSupport,
   type AccessoryPublic,
   type AssetPublic,
 } from "../api";
@@ -115,6 +116,10 @@ export function ProductPage() {
 
         {/* Action stack */}
         <section className="px-6 py-5 space-y-3">
+          {asset.quick_support_enabled && uuid && (
+            <QuickSupportButton uuid={uuid} />
+          )}
+
           {accessories.length > 0 && (
             <>
               <ActionButton
@@ -308,6 +313,111 @@ function ActionButton({
         ▼
       </span>
     </button>
+  );
+}
+
+function QuickSupportButton({ uuid }: { uuid: string }) {
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function send() {
+    setBusy(true);
+    setErr(null);
+    try {
+      await submitQuickSupport(uuid);
+      setDone(true);
+      setConfirm(false);
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : String(ex));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50 p-4 text-center">
+        <div className="text-2xl">✅</div>
+        <div className="mt-1 text-base font-semibold text-emerald-900">
+          Hjelp er på vei
+        </div>
+        <div className="mt-1 text-sm text-emerald-700">
+          Vi har varslet support direkte. Du trenger ikke gjøre noe mer.
+        </div>
+        <button
+          type="button"
+          onClick={() => setDone(false)}
+          className="mt-3 text-xs text-emerald-700 underline"
+        >
+          Send nytt varsel
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setErr(null);
+          setConfirm(true);
+        }}
+        className="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold py-5 px-4 text-lg shadow-lg transition-transform active:scale-[0.98] flex items-center justify-center gap-2"
+      >
+        <span aria-hidden>🚨</span>
+        <span>Trenger hjelp NÅ</span>
+      </button>
+      {err && (
+        <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+          {err}
+        </div>
+      )}
+
+      {confirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => !busy && setConfirm(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center text-3xl">🚨</div>
+            <h3 className="mt-2 text-center text-lg font-semibold text-slate-900">
+              Be om hjelp nå?
+            </h3>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Support blir varslet direkte med serienummer og lokasjon.
+              Bruk kun ved reelle behov.
+            </p>
+            {err && (
+              <div className="mt-3 text-xs text-red-600 text-center">{err}</div>
+            )}
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirm(false)}
+                disabled={busy}
+                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm text-slate-700"
+              >
+                Avbryt
+              </button>
+              <button
+                type="button"
+                onClick={send}
+                disabled={busy}
+                className="flex-1 rounded-lg bg-red-600 hover:bg-red-700 py-2.5 text-sm font-semibold text-white"
+              >
+                {busy ? "Sender…" : "Ja, varsle nå"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

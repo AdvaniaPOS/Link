@@ -140,6 +140,11 @@ export function AssetsPage() {
                 <Td>
                   <div className="font-mono font-medium">{a.serial_number}</div>
                   <div className="text-xs text-slate-400 font-mono">{a.id}</div>
+                  {a.quick_support_enabled && (
+                    <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700 ring-1 ring-red-200">
+                      🚨 Quick support
+                    </div>
+                  )}
                 </Td>
                 <Td>{productMap.get(a.firm_product_id)?.name ?? "—"}</Td>
                 <Td>{a.location ?? "—"}</Td>
@@ -259,6 +264,7 @@ function AssetModal({
   const [productId, setProductId] = useState("");
   const [location, setLocation] = useState("");
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
+  const [quickSupport, setQuickSupport] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -271,6 +277,7 @@ function AssetModal({
     setProductId(asset?.firm_product_id ?? presetProductId ?? products[0]?.id ?? "");
     setLocation(asset?.location ?? "");
     setDiscordWebhookUrl(asset?.discord_webhook_url ?? "");
+    setQuickSupport(asset?.quick_support_enabled ?? false);
     setError(null);
   }, [open, asset, products, presetProductId]);
 
@@ -284,6 +291,7 @@ function AssetModal({
         serial_number: serial,
         location: location || null,
         discord_webhook_url: discordWebhookUrl || null,
+        quick_support_enabled: quickSupport,
       };
       const created = asset
         ? await api.updateAsset(firmId, asset.id, payload)
@@ -293,6 +301,7 @@ function AssetModal({
       setSerial("");
       setLocation("");
       setDiscordWebhookUrl("");
+      setQuickSupport(false);
     } catch (err) {
       setError(err);
     } finally {
@@ -419,6 +428,20 @@ function AssetModal({
             placeholder="https://discord.com/api/webhooks/…"
           />
         </Field>
+        <label className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <input
+            type="checkbox"
+            checked={quickSupport}
+            onChange={(e) => setQuickSupport(e.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            <strong>Quick support</strong> – viser én stor knapp på QR-siden som
+            sender et direkte Discord-varsel uten skjema og uten e-post.
+            Krever at firmaet har Discord-varsling aktivert. Anbefales for
+            festival/event-enheter.
+          </span>
+        </label>
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Lukk

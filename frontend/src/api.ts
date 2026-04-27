@@ -28,6 +28,7 @@ export interface AssetPublic {
   id: string;
   serial_number: string;
   location: string | null;
+  quick_support_enabled: boolean;
   firm: FirmPublic;
   product_model: ProductModelPublic;
 }
@@ -56,6 +57,22 @@ export async function submitSupport(uuid: string, payload: SupportTicketIn): Pro
     body: JSON.stringify(payload),
   });
   if (!res.ok) throw new Error(`Failed to submit support: ${res.status}`);
+}
+
+export async function submitQuickSupport(uuid: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/p/${uuid}/quick-support`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    let detail = `${res.status}`;
+    try {
+      const j = await res.json();
+      if (j?.detail) detail = j.detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
 }
 
 export interface AttachmentUploaded {

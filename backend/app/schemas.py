@@ -41,6 +41,7 @@ class AssetPublic(BaseModel):
     id: UUID
     serial_number: str
     location: str | None = None
+    quick_support_enabled: bool = False
     firm: FirmPublic
     product_model: ProductModelPublic
 
@@ -252,6 +253,7 @@ class AssetIn(BaseModel):
     serial_number: str = Field(..., max_length=100)
     location: str | None = Field(None, max_length=200)
     discord_webhook_url: str | None = Field(None, max_length=500)
+    quick_support_enabled: bool = False
 
 
 class AssetUpdateIn(BaseModel):
@@ -259,6 +261,7 @@ class AssetUpdateIn(BaseModel):
     serial_number: str | None = Field(None, max_length=100)
     location: str | None = Field(None, max_length=200)
     discord_webhook_url: str | None = Field(None, max_length=500)
+    quick_support_enabled: bool | None = None
 
 
 class AssetOut(BaseModel):
@@ -270,6 +273,7 @@ class AssetOut(BaseModel):
     serial_number: str
     location: str | None = None
     discord_webhook_url: str | None = None
+    quick_support_enabled: bool = False
     created_at: datetime
 
 
