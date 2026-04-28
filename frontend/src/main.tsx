@@ -22,6 +22,10 @@ import { AccessoriesPage } from "./admin/AccessoriesPage";
 import { QuickRegisterPage } from "./admin/QuickRegisterPage";
 import { LocationsPage } from "./admin/LocationsPage";
 import { ScanPage } from "./admin/ScanPage";
+import { ForgotPasswordPage } from "./admin/ForgotPasswordPage";
+import { ResetPasswordPage } from "./admin/ResetPasswordPage";
+import { ProfilePage } from "./admin/ProfilePage";
+import { AuditLogsPage } from "./admin/AuditLogsPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -32,14 +36,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/p/:uuid" element={<ProductPage />} />
 
           <Route path="/admin/login" element={<LoginPage />} />
+          <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/admin/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<DashboardPage />} />
+              <Route path="/admin/profile" element={<ProfilePage />} />
               <Route element={<ProtectedRoute requireSuper />}>
                 <Route path="/admin/firms" element={<FirmsPage />} />
                 <Route path="/admin/catalog" element={<CatalogPage />} />
                 <Route path="/admin/tickets" element={<TicketsPage />} />
+                <Route path="/admin/audit" element={<AuditLogsPage />} />
               </Route>
               <Route path="/admin/firms/:firmId/products" element={<ProductsPage />} />
               <Route path="/admin/firms/:firmId/assets" element={<AssetsPage />} />

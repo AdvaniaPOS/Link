@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { ApiError } from "./client";
 import { Button, ErrorBanner, Field, Input, Modal } from "./ui";
 
 export function LoginPage() {
@@ -11,6 +12,8 @@ export function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [totp, setTotp] = useState("");
+  const [need2fa, setNeed2fa] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -20,10 +23,20 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(email, password);
+      await login(email, password, need2fa ? totp.trim() : undefined);
       nav(from, { replace: true });
     } catch (err) {
-      setError(err);
+      if (
+        err instanceof ApiError &&
+        err.status === 401 &&
+        typeof err.detail === "string" &&
+        err.detail.toLowerCase().includes("2fa")
+      ) {
+        setNeed2fa(true);
+        setError(need2fa ? err : null);
+      } else {
+        setError(err);
+      }
     } finally {
       setBusy(false);
     }
@@ -59,9 +72,32 @@ export function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </Field>
+          {need2fa && (
+            <Field label="2FA-kode (6 sifre)">
+              <Input
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={8}
+                required
+                autoFocus
+                autoComplete="one-time-code"
+                value={totp}
+                onChange={(e) => setTotp(e.target.value.replace(/\s+/g, ""))}
+                placeholder="123456"
+              />
+            </Field>
+          )}
           <Button type="submit" disabled={busy} size="lg" className="w-full">
-            {busy ? "Logger inn…" : "Logg inn"}
+            {busy ? "Logger inn…" : need2fa ? "Verifiser og logg inn" : "Logg inn"}
           </Button>
+          <div className="text-right">
+            <Link
+              to="/admin/forgot-password"
+              className="text-xs text-slate-500 hover:text-indigo-600"
+            >
+              Glemt passord?
+            </Link>
+          </div>
         </form>
 
         <div className="pt-2 border-t border-slate-100">

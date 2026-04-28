@@ -1,13 +1,13 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
-from app.auth import get_current_user, require_firm_access
+from app.auth import get_current_user, require_firm_access, require_super_admin
 from app.database import get_db
-from app.models import Asset, Ticket, User
-from app.schemas import TicketCreated
+from app.models import Asset, AuditLog, Ticket, User
+from app.schemas import AuditLogOut, TicketCreated
 from app.workers.tasks import send_resend_email
 
 router = APIRouter(prefix="/admin", tags=["admin:test-email"])
@@ -51,3 +51,23 @@ def send_test_email(
 
     send_resend_email.delay(str(ticket.id))
     return ticket
+
+
+@router.get("/audit-logs", response_model=list[AuditLogOut])
+def list_audit_logs(
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_super_admin),
+    action: str | None = Query(None, max_length=80),
+    actor_email: str | None = Query(None, max_length=255),
+    target_id: str | None = Query(None, max_length=80),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> list[AuditLog]:
+    q = db.query(AuditLog)
+    if action:
+        q = q.filter(AuditLog.action == action)
+    if actor_email:
+        q = q.filter(AuditLog.actor_email == actor_email.lower())
+    if target_id:
+        q = q.filter(AuditLog.target_id == target_id)
+    return q.order_by(AuditLog.created_at.desc()).offset(offset).limit(limit).all()

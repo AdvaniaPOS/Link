@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     # (per-process; fine for dev / single replica).
     rate_limit_storage_uri: str = Field("", alias="RATE_LIMIT_STORAGE_URI")
 
+    # ----- Account lockout -----
+    lockout_max_attempts: int = Field(7, alias="LOCKOUT_MAX_ATTEMPTS")
+    lockout_minutes: int = Field(15, alias="LOCKOUT_MINUTES")
+    # ----- Password reset -----
+    password_reset_minutes: int = Field(60, alias="PASSWORD_RESET_MINUTES")
+
     @property
     def effective_jwt_secret(self) -> str:
         return self.jwt_secret or self.admin_token

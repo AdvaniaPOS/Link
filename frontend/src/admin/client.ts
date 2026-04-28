@@ -81,6 +81,7 @@ export interface UserOut {
   firm_id: string | null;
   is_active: boolean;
   created_at: string;
+  totp_enabled: boolean;
 }
 
 export interface FirmOut {
@@ -219,18 +220,57 @@ export interface TicketOut {
   sent_at: string | null;
 }
 
+export interface AuditLogOut {
+  id: string;
+  actor_user_id: string | null;
+  actor_email: string | null;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  ip: string | null;
+  user_agent: string | null;
+  extra: Record<string, unknown> | null;
+  created_at: string;
+}
+
 // ----- API surface -----
 
 export const api = {
-  login: (email: string, password: string) =>
+  login: (email: string, password: string, totpCode?: string) =>
     http.postForm<{ access_token: string; token_type: string }>("/auth/login", {
       username: email,
       password,
+      ...(totpCode ? { client_id: totpCode } : {}),
     }),
   me: () => http.get<UserOut>("/auth/me"),
   meFirms: () => http.get<MeFirmOut[]>("/auth/me/firms"),
   changePassword: (current_password: string, new_password: string) =>
     http.post<void>("/auth/change-password", { current_password, new_password }),
+  forgotPassword: (email: string) =>
+    http.post<void>("/auth/forgot-password", { email }),
+  resetPassword: (token: string, new_password: string) =>
+    http.post<void>("/auth/reset-password", { token, new_password }),
+  setup2fa: () =>
+    http.post<{ secret: string; otpauth_url: string }>("/auth/2fa/setup"),
+  verify2fa: (code: string) => http.post<void>("/auth/2fa/verify", { code }),
+  disable2fa: (current_password: string) =>
+    http.post<void>("/auth/2fa/disable", { current_password }),
+  listAuditLogs: (params: {
+    action?: string;
+    actor_email?: string;
+    target_id?: string;
+    limit?: number;
+    offset?: number;
+  } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.action) qs.set("action", params.action);
+    if (params.actor_email) qs.set("actor_email", params.actor_email);
+    if (params.target_id) qs.set("target_id", params.target_id);
+    if (params.limit != null) qs.set("limit", String(params.limit));
+    if (params.offset != null) qs.set("offset", String(params.offset));
+    const q = qs.toString();
+    return http.get<AuditLogOut[]>(`/admin/audit-logs${q ? `?${q}` : ""}`);
+  },
 
   // firms
   listFirms: () => http.get<FirmOut[]>("/admin/firms"),

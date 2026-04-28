@@ -566,3 +566,52 @@ def send_accessory_order_email(self, order_id: str) -> dict:
 
 # Reference Accessory in case it's needed for typing - keeps the import used.
 _ = Accessory
+
+
+@celery_app.task(
+    bind=True,
+    name="app.workers.tasks.send_password_reset_email",
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    max_retries=3,
+)
+def send_password_reset_email(self, to_email: str, full_name: str, reset_link: str) -> dict:
+    """Send a password-reset email via Resend.
+
+    Best-effort with retries. The link contains the raw token; only the
+    hashed form is stored in the database.
+    """
+    safe_name = _h(full_name) if full_name else _h(to_email)
+    safe_link = _h(reset_link)
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0f172a;">
+      <h2 style="color:#0f172a;">Tilbakestill passord</h2>
+      <p>Hei {safe_name},</p>
+      <p>Vi mottok en forespørsel om å tilbakestille passordet ditt på Betala&nbsp;Link.</p>
+      <p>
+        <a href="{safe_link}" style="display:inline-block;padding:10px 18px;background:#2563eb;
+        color:#fff;text-decoration:none;border-radius:6px;">Velg nytt passord</a>
+      </p>
+      <p>Lenken er gyldig i {get_settings().password_reset_minutes} minutter.</p>
+      <p>Hvis du ikke ba om dette, kan du trygt ignorere denne e-posten.</p>
+      <p style="color:#64748b;font-size:12px;">Hvis knappen ikke virker, lim inn denne URL-en i nettleseren:<br />{safe_link}</p>
+    </div>
+    """
+    payload = {
+        "from": f"{settings.resend_from_name} <{settings.resend_from_email}>",
+        "to": [to_email],
+        "subject": "Tilbakestill passord — Betala Link",
+        "html": html,
+    }
+    try:
+        response = resend.Emails.send(payload)
+        msg_id = response.get("id") if isinstance(response, dict) else None
+        return {"status": "sent", "message_id": msg_id}
+    except Exception as exc:  # noqa: BLE001
+        try:
+            raise self.retry(exc=exc)
+        except MaxRetriesExceededError:
+            log.exception("Giving up on password-reset email to %s", to_email)
+            return {"status": "failed", "error": str(exc)}

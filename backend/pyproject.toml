@@ -19,6 +19,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "bcrypt>=4.2",
     "PyJWT>=2.9",
+    "pyotp>=2.9",
 ]
 
 [tool.uv]

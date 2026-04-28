@@ -11,7 +11,7 @@ interface AuthCtx {
   /** Currently active firm id used by firm-scoped pages. */
   activeFirmId: string | null;
   setActiveFirmId: (id: string) => void;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, totpCode?: string) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
@@ -82,8 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const login = async (email: string, password: string) => {
-    const { access_token } = await api.login(email, password);
+  const login = async (email: string, password: string, totpCode?: string) => {
+    const { access_token } = await api.login(email, password, totpCode);
     tokenStore.set(access_token);
     // Drop any stored active-firm choice so the new user gets a fresh default.
     try {

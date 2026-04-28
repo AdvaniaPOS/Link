@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 const linkBase =
   "block rounded-md px-3 py-2 text-sm font-medium transition-colors";
@@ -148,6 +149,8 @@ export function AdminLayout() {
           <Item to="/admin/users" label="Brukere" onNavigate={closeDrawer} />
           <Item to="/admin/labels" label="Etiketter" onNavigate={closeDrawer} />
           <Item to="/admin/test-email" label="Test e-post" onNavigate={closeDrawer} />
+          {isSuper && <Item to="/admin/audit" label="Audit-logg" onNavigate={closeDrawer} />}
+          <Item to="/admin/profile" label="Min profil" onNavigate={closeDrawer} />
         </nav>
 
         <div className="p-3 border-t border-slate-800 text-xs text-slate-400 space-y-2">
@@ -174,7 +177,9 @@ export function AdminLayout() {
       </aside>
 
       <main className="flex-1 overflow-y-auto min-w-0">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />

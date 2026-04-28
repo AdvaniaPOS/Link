@@ -1,0 +1,33 @@
+# Systemd unit for the Betala Link FastAPI backend.
+#
+# Install once on the production host:
+#   sudo cp deploy/betala-backend.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now betala-backend
+#
+# Adjust paths and User= to match your deployment.
+
+[Unit]
+Description=Betala Link FastAPI backend
+After=network.target
+
+[Service]
+Type=simple
+User=poshubadmin
+Group=poshubadmin
+WorkingDirectory=/home/poshubadmin/Link/backend
+EnvironmentFile=/home/poshubadmin/Link/backend/.env
+ExecStart=/home/poshubadmin/Link/backend/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 18000 --proxy-headers --forwarded-allow-ips="127.0.0.1"
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

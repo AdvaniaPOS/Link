@@ -83,6 +83,19 @@ def get_current_user(
     user = db.query(User).filter(User.id == UUID(data["sub"])).first()
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    # If the password was changed after this token was issued, treat the
+    # session as terminated. This kicks every other device off when the user
+    # (or an admin) rotates the password.
+    iat = data.get("iat")
+    if iat is not None and user.password_changed_at is not None:
+        pca = user.password_changed_at
+        if pca.tzinfo is None:
+            pca = pca.replace(tzinfo=UTC)
+        if int(pca.timestamp()) > int(iat):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session expired (password changed)",
+            )
     return user
 
 

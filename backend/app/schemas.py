@@ -85,6 +85,7 @@ class UserOut(BaseModel):
     firm_id: UUID | None = None
     is_active: bool
     created_at: datetime
+    totp_enabled: bool = False
 
 
 class UserCreateIn(BaseModel):
@@ -104,6 +105,43 @@ class UserUpdateIn(BaseModel):
 class ChangePasswordIn(BaseModel):
     current_password: str = Field(..., min_length=1, max_length=128)
     new_password: str = Field(..., min_length=10, max_length=128)
+
+
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordIn(BaseModel):
+    token: str = Field(..., min_length=10, max_length=200)
+    new_password: str = Field(..., min_length=10, max_length=128)
+
+
+class TotpSetupOut(BaseModel):
+    secret: str
+    otpauth_url: str
+
+
+class TotpVerifyIn(BaseModel):
+    code: str = Field(..., min_length=6, max_length=10)
+
+
+class TotpDisableIn(BaseModel):
+    current_password: str = Field(..., min_length=1, max_length=128)
+
+
+class AuditLogOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    actor_user_id: UUID | None = None
+    actor_email: str | None = None
+    action: str
+    target_type: str | None = None
+    target_id: str | None = None
+    ip: str | None = None
+    user_agent: str | None = None
+    extra: dict | None = None
+    created_at: datetime
 
 
 # ---------- management: firms ----------
