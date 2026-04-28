@@ -24,6 +24,14 @@ class ProductCatalog(Base):
     __tablename__ = "product_catalog"
 
     id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
+    # NULL = global (super-admin maintained, visible to all firms).
+    # Otherwise = firm-private product, only visible/editable by that firm.
+    owner_firm_id: Mapped[UUID | None] = mapped_column(
+        UUIDType,
+        ForeignKey("firms.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     sku: Mapped[str | None] = mapped_column(String(100))
     category: Mapped[str] = mapped_column(

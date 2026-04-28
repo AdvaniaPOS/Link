@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import {
   api,
   type CatalogOut,
+  type CatalogWriteIn,
   type FirmProductOverrideIn,
   type ProductModelOut,
 } from "./client";
@@ -15,6 +16,7 @@ import {
   Input,
   Modal,
   PageHeader,
+  Select,
   Table,
   Td,
   Textarea,
@@ -49,6 +51,7 @@ export function ProductsPage() {
   const [editing, setEditing] = useState<ProductModelOut | null>(null);
   const editModal = useToggle();
   const linkModal = useToggle();
+  const newModal = useToggle();
 
   async function reload() {
     try {
@@ -101,16 +104,23 @@ export function ProductsPage() {
       <PageHeader
         title="Produkter"
         actions={
-          <Button onClick={() => linkModal.on()} disabled={availableCatalog.length === 0}>
-            Legg til fra katalog
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => newModal.on()}>Lag nytt produkt</Button>
+            <Button
+              variant="secondary"
+              onClick={() => linkModal.on()}
+              disabled={availableCatalog.length === 0}
+            >
+              Legg til fra katalog
+            </Button>
+          </div>
         }
       />
       <ErrorBanner error={error} />
 
       {catalog.length === 0 && (
         <Card className="p-4 mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-          Katalogen er tom. Be en super-admin opprette produkter under{" "}
+          Ingen produkter i katalogen ennå. Klikk «Lag nytt produkt» for å lage et til ditt firma, eller be en super-admin opprette globale produkter under{" "}
           <Link to="/admin/catalog" className="underline font-medium">
             Produktkatalog
           </Link>
@@ -196,6 +206,16 @@ export function ProductsPage() {
         onClose={linkModal.off}
         onLinked={() => {
           linkModal.off();
+          void reload();
+        }}
+      />
+
+      <NewProductModal
+        open={newModal.open}
+        firmId={firmId}
+        onClose={newModal.off}
+        onCreated={() => {
+          newModal.off();
           void reload();
         }}
       />
@@ -414,6 +434,191 @@ function OverrideModal({
           </Button>
           <Button type="submit" disabled={busy}>
             {busy ? "Lagrer…" : "Lagre overstyringer"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+// ---------- New (firm-private) catalog product ----------
+
+const CATEGORY_OPTIONS = [
+  { value: "terminal", label: "Terminal" },
+  { value: "printer", label: "Printer" },
+  { value: "scanner", label: "Scanner" },
+  { value: "tablet", label: "Tablet" },
+  { value: "accessory", label: "Tilbehør" },
+  { value: "other", label: "Annet" },
+];
+
+function NewProductModal({
+  open,
+  firmId,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  firmId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [vals, setVals] = useState<CatalogWriteIn>({
+    name: "",
+    sku: "",
+    category: "other",
+    image_url: "",
+    description: "",
+    manual_url: "",
+    quick_guide_url: "",
+    warranty_url: "",
+    warranty_text: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+
+  useEffect(() => {
+    if (open) {
+      setVals({
+        name: "",
+        sku: "",
+        category: "other",
+        image_url: "",
+        description: "",
+        manual_url: "",
+        quick_guide_url: "",
+        warranty_url: "",
+        warranty_text: "",
+      });
+      setErr(null);
+    }
+  }, [open]);
+
+  function set<K extends keyof CatalogWriteIn>(key: K, v: CatalogWriteIn[K]) {
+    setVals((s) => ({ ...s, [key]: v }));
+  }
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!vals.name.trim()) {
+      setErr(new Error("Navn er påkrevd."));
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const body: CatalogWriteIn = {
+        name: vals.name.trim(),
+        sku: vals.sku?.trim() || null,
+        category: vals.category || "other",
+        image_url: vals.image_url?.trim() || null,
+        description: vals.description?.trim() || null,
+        manual_url: vals.manual_url?.trim() || null,
+        quick_guide_url: vals.quick_guide_url?.trim() || null,
+        warranty_url: vals.warranty_url?.trim() || null,
+        warranty_text: vals.warranty_text?.trim() || null,
+        owner_firm_id: firmId,
+      };
+      const created = await api.createCatalog(body);
+      // Auto-subscribe the firm to the new catalog entry so it appears in Produkter.
+      await api.linkProduct(firmId, created.id);
+      onCreated();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Lag nytt produkt for ditt firma">
+      <ErrorBanner error={err} />
+      <p className="text-xs text-slate-500 mb-4">
+        Produktet er privat for ditt firma og synes ikke for andre. Det blir automatisk
+        abonnert på når det opprettes.
+      </p>
+      <form onSubmit={submit} className="space-y-3">
+        <Field label="Navn *">
+          <Input
+            value={vals.name}
+            onChange={(e) => set("name", e.target.value)}
+            required
+            maxLength={200}
+          />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="SKU">
+            <Input
+              value={vals.sku ?? ""}
+              onChange={(e) => set("sku", e.target.value)}
+              maxLength={100}
+            />
+          </Field>
+          <Field label="Kategori">
+            <Select
+              value={vals.category}
+              onChange={(e) => set("category", e.target.value)}
+            >
+              {CATEGORY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <Field label="Bilde-URL">
+          <Input
+            type="url"
+            value={vals.image_url ?? ""}
+            onChange={(e) => set("image_url", e.target.value)}
+          />
+        </Field>
+        <Field label="Beskrivelse">
+          <Textarea
+            value={vals.description ?? ""}
+            onChange={(e) => set("description", e.target.value)}
+            rows={3}
+          />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Manual-URL">
+            <Input
+              type="url"
+              value={vals.manual_url ?? ""}
+              onChange={(e) => set("manual_url", e.target.value)}
+            />
+          </Field>
+          <Field label="Hurtigveiledning-URL">
+            <Input
+              type="url"
+              value={vals.quick_guide_url ?? ""}
+              onChange={(e) => set("quick_guide_url", e.target.value)}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Garanti-URL">
+            <Input
+              type="url"
+              value={vals.warranty_url ?? ""}
+              onChange={(e) => set("warranty_url", e.target.value)}
+            />
+          </Field>
+          <Field label="Garantitekst">
+            <Textarea
+              value={vals.warranty_text ?? ""}
+              onChange={(e) => set("warranty_text", e.target.value)}
+              rows={2}
+            />
+          </Field>
+        </div>
+        <div className="flex gap-2 justify-end pt-2">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Avbryt
+          </Button>
+          <Button type="submit" disabled={busy}>
+            {busy ? "Oppretter…" : "Opprett produkt"}
           </Button>
         </div>
       </form>

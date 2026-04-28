@@ -162,6 +162,9 @@ class CatalogIn(BaseModel):
     quick_guide_url: str | None = Field(None, max_length=500)
     warranty_url: str | None = Field(None, max_length=500)
     warranty_text: str | None = Field(None, max_length=4000)
+    # Optional: super-admin can set to a firm id to make this a firm-private
+    # product. firm_admin must set this to one of their own firms.
+    owner_firm_id: UUID | None = None
 
 
 class CatalogUpdateIn(BaseModel):
@@ -182,6 +185,7 @@ class CatalogOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    owner_firm_id: UUID | None = None
     name: str
     sku: str | None = None
     category: str = "other"

@@ -124,6 +124,7 @@ export interface ProductModelOut {
 
 export interface CatalogOut {
   id: string;
+  owner_firm_id: string | null;
   name: string;
   sku: string | null;
   category: string;
@@ -150,6 +151,7 @@ export interface CatalogWriteIn {
   quick_guide_url?: string | null;
   warranty_url?: string | null;
   warranty_text?: string | null;
+  owner_firm_id?: string | null;
 }
 
 export interface FirmProductOverrideIn {
