@@ -1,8 +1,12 @@
 """Add owner_firm_id to product_catalog (firm-private products).
 
 Revision ID: 7b3a1f8c4e2d
-Revises: 32889b2da4af
+Revises:
 Create Date: 2026-04-28
+
+Note: down_revision intentionally None. The model schema is bootstrapped via
+SQLAlchemy ``Base.metadata.create_all`` on first run; this file only carries
+incremental changes for already-deployed databases.
 """
 
 from __future__ import annotations
@@ -12,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "7b3a1f8c4e2d"
-down_revision = "32889b2da4af"
+down_revision = None
 branch_labels = None
 depends_on = None
 
