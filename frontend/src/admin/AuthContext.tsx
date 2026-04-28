@@ -1,7 +1,19 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, tokenStore, type MeFirmOut, type UserOut } from "./client";
 
-const ACTIVE_FIRM_KEY = "betala_active_firm";
+const ACTIVE_FIRM_KEY = "tagly_active_firm";
+const LEGACY_ACTIVE_FIRM_KEY = "betala_active_firm";
+
+// One-time migration: preserve active firm selection after the rebrand.
+try {
+  const legacy = localStorage.getItem(LEGACY_ACTIVE_FIRM_KEY);
+  if (legacy && !localStorage.getItem(ACTIVE_FIRM_KEY)) {
+    localStorage.setItem(ACTIVE_FIRM_KEY, legacy);
+  }
+  if (legacy) localStorage.removeItem(LEGACY_ACTIVE_FIRM_KEY);
+} catch {
+  /* ignore storage errors */
+}
 
 interface AuthCtx {
   user: UserOut | null;

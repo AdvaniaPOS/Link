@@ -4,7 +4,19 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api";
-const TOKEN_KEY = "betala_token";
+const TOKEN_KEY = "tagly_token";
+const LEGACY_TOKEN_KEY = "betala_token";
+
+// One-time migration: keep users logged in after the rebrand.
+try {
+  const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+  if (legacy && !localStorage.getItem(TOKEN_KEY)) {
+    localStorage.setItem(TOKEN_KEY, legacy);
+  }
+  if (legacy) localStorage.removeItem(LEGACY_TOKEN_KEY);
+} catch {
+  /* ignore storage errors */
+}
 
 export const tokenStore = {
   get: () => localStorage.getItem(TOKEN_KEY),

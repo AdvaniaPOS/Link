@@ -17,10 +17,10 @@ def main() -> None:
 
     db = SessionLocal()
     try:
-        firm = db.query(Firm).filter(Firm.name == "Betala AS").first()
+        firm = db.query(Firm).filter(Firm.name == "Tagly AS").first()
         if firm is None:
             firm = Firm(
-                name="Betala AS",
+                name="Tagly AS",
                 brand_color="#4F46E5",
                 logo_url=None,
                 support_email_target="jon.vidar.sigurdarson@gmail.com",
@@ -29,14 +29,14 @@ def main() -> None:
             db.flush()
 
         catalog = (
-            db.query(ProductCatalog).filter(ProductCatalog.name == "Betala v3 Terminal").first()
+            db.query(ProductCatalog).filter(ProductCatalog.name == "Tagly v3 Terminal").first()
         )
         if catalog is None:
             catalog = ProductCatalog(
-                name="Betala v3 Terminal",
-                sku="BTL-V3",
+                name="Tagly v3 Terminal",
+                sku="TGL-V3",
                 category="terminal",
-                description="Betala betalingsterminal v3 – demo-modell.",
+                description="Tagly betalingsterminal v3 – demo-modell.",
             )
             db.add(catalog)
             db.flush()
@@ -66,10 +66,10 @@ def main() -> None:
             db.add(asset)
             db.flush()
 
-        super_admin = db.query(User).filter(User.email == "super@betala.link").first()
+        super_admin = db.query(User).filter(User.email == "super@tagly.link").first()
         if super_admin is None:
             super_admin = User(
-                email="super@betala.link",
+                email="super@tagly.link",
                 password_hash=hash_password("changeme123"),
                 full_name="Super Admin",
                 role=UserRole.super_admin,
@@ -77,12 +77,12 @@ def main() -> None:
             )
             db.add(super_admin)
 
-        firm_admin = db.query(User).filter(User.email == "admin@betala.link").first()
+        firm_admin = db.query(User).filter(User.email == "admin@tagly.link").first()
         if firm_admin is None:
             firm_admin = User(
-                email="admin@betala.link",
+                email="admin@tagly.link",
                 password_hash=hash_password("changeme123"),
-                full_name="Betala Firm Admin",
+                full_name="Tagly Firm Admin",
                 role=UserRole.firm_admin,
                 firm_id=firm.id,
             )
@@ -96,8 +96,8 @@ def main() -> None:
         print(f"  Asset:   {asset.id}  ({asset.serial_number})")
         print()
         print("Logins (passord: changeme123):")
-        print("  super@betala.link   (super_admin)")
-        print("  admin@betala.link   (firm_admin – Betala AS)")
+        print("  super@tagly.link   (super_admin)")
+        print("  admin@tagly.link   (firm_admin – Tagly AS)")
         print()
         print(f"Kundevisning: http://localhost:51730/p/{asset.id}")
         print("Admin-portal: http://localhost:51730/admin")

@@ -1,7 +1,7 @@
 import { QRCodeSVG } from "qrcode.react";
 
 export interface LabelProps {
-  /** Full URL encoded into the QR (e.g. https://betala.link/p/abc-123). */
+  /** Full URL encoded into the QR (e.g. https://tagly.poshub.no/p/abc-123). */
   url: string;
   /** Optional short caption shown next to the QR. */
   caption?: string;
