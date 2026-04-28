@@ -171,6 +171,34 @@ export interface AssetOut {
   created_at: string;
 }
 
+export interface FirmLocationOut {
+  id: string;
+  firm_id: string;
+  name: string;
+  discord_role_id: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface FirmLocationWriteIn {
+  name: string;
+  discord_role_id?: string | null;
+  sort_order?: number;
+}
+
+export interface MeFirmOut {
+  id: string;
+  name: string;
+  is_primary: boolean;
+}
+
+export interface FirmMembershipOut {
+  id: string;
+  user_id: string;
+  firm_id: string;
+  created_at: string;
+}
+
 export type TicketStatus = "pending" | "sent" | "failed";
 
 export interface TicketOut {
@@ -198,6 +226,7 @@ export const api = {
       password,
     }),
   me: () => http.get<UserOut>("/auth/me"),
+  meFirms: () => http.get<MeFirmOut[]>("/auth/me/firms"),
 
   // firms
   listFirms: () => http.get<FirmOut[]>("/admin/firms"),
@@ -228,6 +257,10 @@ export const api = {
 
   // assets
   listAssets: (firmId: string) => http.get<AssetOut[]>(`/admin/firms/${firmId}/assets`),
+  getAssetBySerial: (firmId: string, serial: string) =>
+    http.get<AssetOut>(
+      `/admin/firms/${firmId}/assets/by-serial/${encodeURIComponent(serial)}`,
+    ),
   createAsset: (
     firmId: string,
     b: { firm_product_id: string; serial_number: string; location?: string | null },
@@ -236,6 +269,26 @@ export const api = {
     http.patch<AssetOut>(`/admin/firms/${firmId}/assets/${id}`, b),
   deleteAsset: (firmId: string, id: string) =>
     http.del(`/admin/firms/${firmId}/assets/${id}`),
+
+  // firm locations (predefined locations used by the festival scan flow)
+  listLocations: (firmId: string) =>
+    http.get<FirmLocationOut[]>(`/admin/firms/${firmId}/locations`),
+  createLocation: (firmId: string, b: FirmLocationWriteIn) =>
+    http.post<FirmLocationOut>(`/admin/firms/${firmId}/locations`, b),
+  updateLocation: (firmId: string, id: string, b: Partial<FirmLocationWriteIn>) =>
+    http.patch<FirmLocationOut>(`/admin/firms/${firmId}/locations/${id}`, b),
+  deleteLocation: (firmId: string, id: string) =>
+    http.del(`/admin/firms/${firmId}/locations/${id}`),
+
+  // firm memberships (multi-firm switcher)
+  listMemberships: (userId: string) =>
+    http.get<FirmMembershipOut[]>(`/admin/users/${userId}/firm-memberships`),
+  addMembership: (userId: string, firmId: string) =>
+    http.post<FirmMembershipOut>(`/admin/users/${userId}/firm-memberships`, {
+      firm_id: firmId,
+    }),
+  removeMembership: (userId: string, firmId: string) =>
+    http.del(`/admin/users/${userId}/firm-memberships/${firmId}`),
 
   // tickets
   listFirmTickets: (firmId: string, statusFilter?: TicketStatus) =>

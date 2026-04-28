@@ -23,6 +23,8 @@ from app.api.assets import router as assets_router
 from app.api.auth import router as auth_router
 from app.api.catalog import router as catalog_router
 from app.api.firms import router as firms_router
+from app.api.locations import router as locations_router
+from app.api.memberships import router as memberships_router
 from app.api.products import router as products_router
 from app.api.public import router as public_router
 from app.api.tickets import router as tickets_router
@@ -105,6 +107,8 @@ app.include_router(firms_router, prefix=API_PREFIX)
 app.include_router(catalog_router, prefix=API_PREFIX)
 app.include_router(products_router, prefix=API_PREFIX)
 app.include_router(assets_router, prefix=API_PREFIX)
+app.include_router(locations_router, prefix=API_PREFIX)
+app.include_router(memberships_router, prefix=API_PREFIX)
 app.include_router(tickets_router, prefix=API_PREFIX)
 app.include_router(users_router, prefix=API_PREFIX)
 app.include_router(accessories_router, prefix=API_PREFIX)

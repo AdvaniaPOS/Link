@@ -93,8 +93,14 @@ def require_super_admin(user: User = Depends(get_current_user)) -> User:
 
 
 def require_firm_access(firm_id: UUID, user: User) -> None:
-    """Raise 403 unless the user is super_admin or scoped to the same firm."""
+    """Raise 403 unless the user is super_admin, scoped to the same firm,
+    or has an explicit firm membership for ``firm_id``."""
     if user.role == UserRole.super_admin:
         return
-    if user.firm_id != firm_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    if user.firm_id == firm_id:
+        return
+    # Check explicit memberships (multi-firm operators)
+    for m in user.memberships:
+        if m.firm_id == firm_id:
+            return
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")

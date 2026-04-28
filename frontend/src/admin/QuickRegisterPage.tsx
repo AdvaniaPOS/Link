@@ -73,7 +73,7 @@ export function QuickRegisterPage() {
   }, [products]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <PageHeader title="Hurtigregistrering" />
       <p className="text-sm text-slate-500 -mt-3 mb-5">
         Velg produkt-mal, tast inn serienummer, trykk Enter. QR genereres umiddelbart.

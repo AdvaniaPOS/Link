@@ -40,7 +40,7 @@ export function FirmsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <PageHeader
         title="Firmaer"
         actions={<Button onClick={openNew}>+ Nytt firma</Button>}

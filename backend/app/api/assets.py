@@ -23,6 +23,28 @@ def list_assets(
     return db.query(Asset).filter(Asset.firm_id == firm_id).order_by(Asset.created_at.desc()).all()
 
 
+@router.get("/by-serial/{serial}", response_model=AssetOut)
+def get_asset_by_serial(
+    firm_id: UUID,
+    serial: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Asset:
+    """Look up a single asset by its serial number within a firm.
+
+    Used by the festival scan page after a QR/barcode read.
+    """
+    require_firm_access(firm_id, user)
+    asset = (
+        db.query(Asset)
+        .filter(Asset.firm_id == firm_id, Asset.serial_number == serial.strip())
+        .first()
+    )
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return asset
+
+
 @router.post("", response_model=AssetOut, status_code=status.HTTP_201_CREATED)
 def create_asset(
     firm_id: UUID,

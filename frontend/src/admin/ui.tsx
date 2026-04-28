@@ -2,9 +2,9 @@ import { useState, type ReactNode } from "react";
 
 export function PageHeader({ title, actions }: { title: string; actions?: ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-6">
-      <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
-      {actions && <div className="flex gap-2">{actions}</div>}
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">{title}</h1>
+      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
@@ -101,11 +101,11 @@ export function Modal({
 }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+    <div className="fixed inset-0 bg-slate-900/50 flex items-start sm:items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg my-4 sm:my-0 sm:max-h-[90vh] sm:overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 sticky top-0 bg-white rounded-t-xl">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none px-2">
             ×
           </button>
         </div>

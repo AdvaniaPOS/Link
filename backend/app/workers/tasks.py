@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.models import Accessory, AccessoryOrder, Asset, FirmProduct, Ticket, TicketStatus
+from app.models import Accessory, AccessoryOrder, Asset, FirmLocation, FirmProduct, Ticket, TicketStatus
 from app.workers.celery_app import celery_app
 
 log = logging.getLogger(__name__)
@@ -48,6 +48,40 @@ def _resolve_discord_webhook(firm, asset) -> str | None:
         return asset_url
     firm_url = (getattr(firm, "discord_webhook_url", None) or "").strip()
     return firm_url or None
+
+
+def _resolve_location_role_id(firm, asset) -> str | None:
+    """If asset.location matches a predefined FirmLocation with a Discord
+    role id, return it. Used to ping the on-site team for that area instead
+    of the generic ``@here`` mention.
+    """
+    location = (getattr(asset, "location", None) or "").strip()
+    if not location:
+        return None
+    db = SessionLocal()
+    try:
+        loc = (
+            db.query(FirmLocation)
+            .filter(FirmLocation.firm_id == firm.id, FirmLocation.name == location)
+            .first()
+        )
+        if loc is None or not loc.discord_role_id:
+            return None
+        return loc.discord_role_id
+    finally:
+        db.close()
+
+
+def _mention_for_asset(firm, asset, fallback: str = "@here") -> tuple[str, dict | None]:
+    """Return (content_prefix, allowed_mentions) for a Discord notification.
+
+    Prefers a role mention scoped to the asset's location so on-site staff
+    get a targeted ping. Falls back to ``fallback`` (typically ``@here``).
+    """
+    role_id = _resolve_location_role_id(firm, asset)
+    if role_id:
+        return f"<@&{role_id}>", {"parse": [], "roles": [role_id]}
+    return fallback, None
 
 
 def _post_discord_webhook(url: str, payload: dict) -> None:
@@ -94,7 +128,10 @@ def notify_discord_quick_support(asset: Asset) -> tuple[bool, str | None]:
         "fields": fields,
         "footer": {"text": "Betala Link · Quick support"},
     }
-    payload = {"content": "@here", "embeds": [embed]}
+    content, allowed = _mention_for_asset(firm, asset, fallback="@here")
+    payload: dict = {"content": content, "embeds": [embed]}
+    if allowed is not None:
+        payload["allowed_mentions"] = allowed
     try:
         with httpx.Client(timeout=10.0) as client:
             r = client.post(url, json=payload)
@@ -163,7 +200,13 @@ def _notify_discord_ticket(ticket: Ticket) -> None:
         "title": "Ny supporthenvendelse",
         "description": _truncate(f"Ticket `{ticket.id}`", _DISCORD_DESC_MAX),
         "color": 0x4F46E5,
-        "fields": fields,
+    content, allowed = _mention_for_asset(firm, asset, fallback="")
+    payload: dict = {"embeds": [embed]}
+    if content:
+        payload["content"] = content
+    if allowed is not None:
+        payload["allowed_mentions"] = allowed
+    _post_discord_webhook(url, payload
         "footer": {"text": "Betala Link"},
     }
     _post_discord_webhook(url, {"embeds": [embed]})

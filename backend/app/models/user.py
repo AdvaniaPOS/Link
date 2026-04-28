@@ -34,3 +34,6 @@ class User(Base):
     )
 
     firm: Mapped["Firm | None"] = relationship()  # noqa: F821
+    memberships: Mapped[list["FirmMembership"]] = relationship(  # noqa: F821
+        back_populates="user", cascade="all, delete-orphan"
+    )

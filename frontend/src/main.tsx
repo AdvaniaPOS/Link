@@ -20,6 +20,8 @@ import { TicketsPage } from "./admin/TicketsPage";
 import { UsersPage } from "./admin/UsersPage";
 import { AccessoriesPage } from "./admin/AccessoriesPage";
 import { QuickRegisterPage } from "./admin/QuickRegisterPage";
+import { LocationsPage } from "./admin/LocationsPage";
+import { ScanPage } from "./admin/ScanPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -41,6 +43,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               </Route>
               <Route path="/admin/firms/:firmId/products" element={<ProductsPage />} />
               <Route path="/admin/firms/:firmId/assets" element={<AssetsPage />} />
+              <Route path="/admin/firms/:firmId/scan" element={<ScanPage />} />
+              <Route path="/admin/firms/:firmId/locations" element={<LocationsPage />} />
               <Route path="/admin/firms/:firmId/register" element={<QuickRegisterPage />} />
               <Route path="/admin/firms/:firmId/accessories" element={<AccessoriesPage />} />
               <Route path="/admin/firms/:firmId/tickets" element={<TicketsPage />} />

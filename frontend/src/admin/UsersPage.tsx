@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { api, type FirmOut, type UserOut, type UserRole } from "./client";
+import { api, type FirmMembershipOut, type FirmOut, type UserOut, type UserRole } from "./client";
 import { useAuth } from "./AuthContext";
 import {
   Badge,
@@ -53,7 +53,7 @@ export function UsersPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <PageHeader
         title="Brukere"
         actions={
@@ -280,6 +280,10 @@ function UserModal({
           </Field>
         )}
 
+        {user && user.role !== "super_admin" && (
+          <MembershipEditor user={user} firms={firms} />
+        )}
+
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Avbryt
@@ -290,5 +294,106 @@ function UserModal({
         </div>
       </form>
     </Modal>
+  );
+}
+
+/**
+ * Manage extra firm memberships for a user. Lets the same email switch
+ * between several firms via the firm switcher in the sidebar.
+ */
+function MembershipEditor({ user, firms }: { user: UserOut; firms: FirmOut[] }) {
+  const [memberships, setMemberships] = useState<FirmMembershipOut[]>([]);
+  const [picking, setPicking] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+
+  async function reload() {
+    try {
+      setMemberships(await api.listMemberships(user.id));
+    } catch (e) {
+      setError(e);
+    }
+  }
+  useEffect(() => {
+    void reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id]);
+
+  const memberFirmIds = new Set(memberships.map((m) => m.firm_id));
+  const candidates = firms.filter(
+    (f) => f.id !== user.firm_id && !memberFirmIds.has(f.id),
+  );
+
+  async function add() {
+    if (!picking) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.addMembership(user.id, picking);
+      setPicking("");
+      await reload();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(firmId: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.removeMembership(user.id, firmId);
+      await reload();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const firmName = (id: string) => firms.find((f) => f.id === id)?.name ?? id;
+
+  return (
+    <div className="rounded-md border border-slate-200 p-3">
+      <div className="text-sm font-medium text-slate-700 mb-2">
+        Tilgang til flere firma
+      </div>
+      <ErrorBanner error={error} />
+      {memberships.length === 0 ? (
+        <p className="text-xs text-slate-500">Ingen ekstra firmatilganger.</p>
+      ) : (
+        <ul className="space-y-1 mb-2">
+          {memberships.map((m) => (
+            <li key={m.id} className="flex items-center justify-between text-sm">
+              <span>{firmName(m.firm_id)}</span>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void remove(m.firm_id)}
+                className="text-xs text-red-600 hover:text-red-800"
+              >
+                Fjern
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {candidates.length > 0 && (
+        <div className="flex gap-2">
+          <Select value={picking} onChange={(e) => setPicking(e.target.value)}>
+            <option value="">— legg til firma —</option>
+            {candidates.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </Select>
+          <Button type="button" variant="secondary" disabled={!picking || busy} onClick={() => void add()}>
+            Legg til
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

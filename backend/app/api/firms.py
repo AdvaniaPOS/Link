@@ -11,6 +11,16 @@ from app.schemas import FirmIn, FirmOut, FirmUpdateIn
 router = APIRouter(prefix="/admin/firms", tags=["admin:firms"])
 
 
+def _accessible_firm_ids(user: User) -> set[UUID]:
+    """Firm ids the user may operate in (primary + memberships)."""
+    ids: set[UUID] = set()
+    if user.firm_id is not None:
+        ids.add(user.firm_id)
+    for m in user.memberships:
+        ids.add(m.firm_id)
+    return ids
+
+
 @router.get("", response_model=list[FirmOut])
 def list_firms(
     db: Session = Depends(get_db),
@@ -18,7 +28,10 @@ def list_firms(
 ) -> list[Firm]:
     q = db.query(Firm).order_by(Firm.created_at.desc())
     if user.role != UserRole.super_admin:
-        q = q.filter(Firm.id == user.firm_id)
+        ids = _accessible_firm_ids(user)
+        if not ids:
+            return []
+        q = q.filter(Firm.id.in_(ids))
     return q.all()
 
 
@@ -41,7 +54,7 @@ def get_firm(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Firm:
-    if user.role != UserRole.super_admin and user.firm_id != firm_id:
+    if user.role != UserRole.super_admin and firm_id not in _accessible_firm_ids(user):
         raise HTTPException(status_code=403, detail="Forbidden")
     firm = db.query(Firm).filter(Firm.id == firm_id).first()
     if firm is None:
@@ -56,7 +69,7 @@ def update_firm(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> Firm:
-    if user.role != UserRole.super_admin and user.firm_id != firm_id:
+    if user.role != UserRole.super_admin and firm_id not in _accessible_firm_ids(user):
         raise HTTPException(status_code=403, detail="Forbidden")
     firm = db.query(Firm).filter(Firm.id == firm_id).first()
     if firm is None:

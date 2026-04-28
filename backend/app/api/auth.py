@@ -7,7 +7,7 @@ from app.config import get_settings
 from app.database import get_db
 from app.models import User
 from app.rate_limit import limiter
-from app.schemas import TokenOut, UserOut
+from app.schemas import MeFirmOut, TokenOut, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -32,3 +32,18 @@ def login(
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)) -> User:
     return user
+
+
+@router.get("/me/firms", response_model=list[MeFirmOut])
+def me_firms_endpoint(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[MeFirmOut]:
+    """Firms the current user can switch into.
+
+    Super-admins get every firm. Firm-admins get their primary firm plus any
+    firms they have been granted membership in.
+    """
+    from app.api.memberships import me_firms
+
+    return me_firms(db, user)

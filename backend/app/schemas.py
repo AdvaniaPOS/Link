@@ -277,6 +277,56 @@ class AssetOut(BaseModel):
     created_at: datetime
 
 
+# ---------- management: firm locations ----------
+
+
+class FirmLocationIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=120)
+    discord_role_id: str | None = Field(None, max_length=40, pattern=r"^\d{1,40}$")
+    sort_order: int = 0
+
+
+class FirmLocationUpdateIn(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=120)
+    discord_role_id: str | None = Field(None, max_length=40)
+    sort_order: int | None = None
+
+
+class FirmLocationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    firm_id: UUID
+    name: str
+    discord_role_id: str | None = None
+    sort_order: int = 0
+    created_at: datetime
+
+
+# ---------- management: firm memberships / multi-firm switcher ----------
+
+
+class MeFirmOut(BaseModel):
+    """A firm the current user can act in (primary or via membership)."""
+
+    id: UUID
+    name: str
+    is_primary: bool = False
+
+
+class FirmMembershipOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UUID
+    firm_id: UUID
+    created_at: datetime
+
+
+class FirmMembershipIn(BaseModel):
+    firm_id: UUID
+
+
 # ---------- management: tickets ----------
 
 
