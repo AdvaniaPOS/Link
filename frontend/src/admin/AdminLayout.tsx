@@ -77,10 +77,21 @@ export function AdminLayout() {
         <div className="w-9" />
       </header>
 
+      {/* Mobile backdrop */}
+      {drawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={closeDrawer}
+          aria-hidden="true"
+        />
+      )}
+
       <aside
-        className={`bg-slate-900 text-white flex-col
-          ${drawerOpen ? "flex" : "hidden"}
-          md:flex md:w-64 md:min-h-screen md:sticky md:top-0`}
+        className={`bg-slate-900 text-white flex flex-col
+          fixed inset-y-0 left-0 w-72 max-w-[85vw] z-50
+          transform transition-transform duration-200 ease-out
+          ${drawerOpen ? "translate-x-0" : "-translate-x-full"}
+          md:relative md:translate-x-0 md:w-64 md:min-h-screen md:sticky md:top-0 md:z-auto md:max-w-none`}
       >
         <div className="hidden md:block px-5 py-5 border-b border-slate-800">
           <div className="text-lg font-bold">Betala Link</div>

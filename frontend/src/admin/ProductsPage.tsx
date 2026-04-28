@@ -147,6 +147,8 @@ export function ProductsPage() {
             </tr>
           )}
           {items.map((p) => {
+            const cat = catalog.find((c) => c.id === p.catalog_id);
+            const isOwn = cat?.owner_firm_id === firmId;
             const overrideCount = OVERRIDE_FIELDS.filter(
               (f) => p.overrides[f.key] !== null && p.overrides[f.key] !== undefined,
             ).length;
@@ -169,7 +171,9 @@ export function ProductsPage() {
                 <Td>{p.sku ?? "—"}</Td>
                 <Td>{p.category}</Td>
                 <Td>
-                  {overrideCount === 0 ? (
+                  {isOwn ? (
+                    <Badge tone="green">Eget produkt</Badge>
+                  ) : overrideCount === 0 ? (
                     <Badge tone="slate">Arver alt</Badge>
                   ) : (
                     <Badge tone="indigo">{overrideCount} overstyrt</Badge>
@@ -182,7 +186,7 @@ export function ProductsPage() {
                       onClick={() => startEdit(p)}
                       className="text-xs px-2 py-1 rounded border border-slate-300 hover:bg-slate-50"
                     >
-                      Overstyr
+                      {isOwn ? "Rediger" : "Overstyr"}
                     </button>
                     <button
                       type="button"
@@ -224,6 +228,9 @@ export function ProductsPage() {
         open={editModal.open && editing !== null}
         firmId={firmId}
         product={editing}
+        catalogEntry={
+          editing ? (catalog.find((c) => c.id === editing.catalog_id) ?? null) : null
+        }
         onClose={() => {
           editModal.off();
           setEditing(null);
@@ -313,6 +320,46 @@ function LinkCatalogModal({
 // ---------- Override editor modal ----------
 
 function OverrideModal({
+  open,
+  firmId,
+  product,
+  catalogEntry,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  firmId: string;
+  product: ProductModelOut | null;
+  catalogEntry: CatalogOut | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isOwn = !!catalogEntry && catalogEntry.owner_firm_id === firmId;
+
+  if (isOwn && catalogEntry) {
+    return (
+      <EditOwnProductModal
+        open={open}
+        catalogEntry={catalogEntry}
+        productName={product?.name ?? ""}
+        onClose={onClose}
+        onSaved={onSaved}
+      />
+    );
+  }
+
+  return (
+    <OverrideOnlyModal
+      open={open}
+      firmId={firmId}
+      product={product}
+      onClose={onClose}
+      onSaved={onSaved}
+    />
+  );
+}
+
+function OverrideOnlyModal({
   open,
   firmId,
   product,
@@ -619,6 +666,187 @@ function NewProductModal({
           </Button>
           <Button type="submit" disabled={busy}>
             {busy ? "Oppretter…" : "Opprett produkt"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+// ---------- Edit firm-owned catalog product (full fields) ----------
+
+function EditOwnProductModal({
+  open,
+  catalogEntry,
+  productName,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  catalogEntry: CatalogOut;
+  productName: string;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [vals, setVals] = useState<CatalogWriteIn>({
+    name: catalogEntry.name,
+    sku: catalogEntry.sku ?? "",
+    category: catalogEntry.category,
+    image_url: catalogEntry.image_url ?? "",
+    description: catalogEntry.description ?? "",
+    manual_url: catalogEntry.manual_url ?? "",
+    quick_guide_url: catalogEntry.quick_guide_url ?? "",
+    warranty_url: catalogEntry.warranty_url ?? "",
+    warranty_text: catalogEntry.warranty_text ?? "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+
+  useEffect(() => {
+    if (open) {
+      setVals({
+        name: catalogEntry.name,
+        sku: catalogEntry.sku ?? "",
+        category: catalogEntry.category,
+        image_url: catalogEntry.image_url ?? "",
+        description: catalogEntry.description ?? "",
+        manual_url: catalogEntry.manual_url ?? "",
+        quick_guide_url: catalogEntry.quick_guide_url ?? "",
+        warranty_url: catalogEntry.warranty_url ?? "",
+        warranty_text: catalogEntry.warranty_text ?? "",
+      });
+      setErr(null);
+    }
+  }, [open, catalogEntry]);
+
+  function set<K extends keyof CatalogWriteIn>(key: K, v: CatalogWriteIn[K]) {
+    setVals((s) => ({ ...s, [key]: v }));
+  }
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!vals.name.trim()) {
+      setErr(new Error("Navn er påkrevd."));
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const body: Partial<CatalogWriteIn> = {
+        name: vals.name.trim(),
+        sku: vals.sku?.trim() || null,
+        category: vals.category || "other",
+        image_url: vals.image_url?.trim() || null,
+        description: vals.description?.trim() || null,
+        manual_url: vals.manual_url?.trim() || null,
+        quick_guide_url: vals.quick_guide_url?.trim() || null,
+        warranty_url: vals.warranty_url?.trim() || null,
+        warranty_text: vals.warranty_text?.trim() || null,
+      };
+      await api.updateCatalog(catalogEntry.id, body);
+      onSaved();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title={`Rediger "${productName}"`}>
+      <ErrorBanner error={err} />
+      <p className="text-xs text-slate-500 mb-4">
+        Endringer her gjelder for ditt firmas produkt. Alle felt kan endres fritt.
+      </p>
+      <form onSubmit={submit} className="space-y-3">
+        <Field label="Navn *">
+          <Input
+            value={vals.name}
+            onChange={(e) => set("name", e.target.value)}
+            required
+            maxLength={200}
+          />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="SKU">
+            <Input
+              value={vals.sku ?? ""}
+              onChange={(e) => set("sku", e.target.value)}
+              maxLength={100}
+            />
+          </Field>
+          <Field label="Kategori">
+            <Select
+              value={vals.category}
+              onChange={(e) => set("category", e.target.value)}
+            >
+              {CATEGORY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <Field label="Bilde-URL">
+          <Input
+            type="url"
+            value={vals.image_url ?? ""}
+            onChange={(e) => set("image_url", e.target.value)}
+          />
+          {vals.image_url ? (
+            <img
+              src={vals.image_url}
+              alt=""
+              className="mt-2 h-20 w-20 object-contain rounded bg-slate-50 border border-slate-200"
+            />
+          ) : null}
+        </Field>
+        <Field label="Beskrivelse">
+          <Textarea
+            value={vals.description ?? ""}
+            onChange={(e) => set("description", e.target.value)}
+            rows={3}
+          />
+        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Manual-URL">
+            <Input
+              type="url"
+              value={vals.manual_url ?? ""}
+              onChange={(e) => set("manual_url", e.target.value)}
+            />
+          </Field>
+          <Field label="Hurtigveiledning-URL">
+            <Input
+              type="url"
+              value={vals.quick_guide_url ?? ""}
+              onChange={(e) => set("quick_guide_url", e.target.value)}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Garanti-URL">
+            <Input
+              type="url"
+              value={vals.warranty_url ?? ""}
+              onChange={(e) => set("warranty_url", e.target.value)}
+            />
+          </Field>
+          <Field label="Garantitekst">
+            <Textarea
+              value={vals.warranty_text ?? ""}
+              onChange={(e) => set("warranty_text", e.target.value)}
+              rows={2}
+            />
+          </Field>
+        </div>
+        <div className="flex gap-2 justify-end pt-2">
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Avbryt
+          </Button>
+          <Button type="submit" disabled={busy}>
+            {busy ? "Lagrer…" : "Lagre"}
           </Button>
         </div>
       </form>
