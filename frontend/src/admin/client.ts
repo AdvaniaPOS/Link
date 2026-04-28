@@ -120,6 +120,8 @@ export interface ProductModelOut {
     warranty_url: string | null;
     warranty_text: string | null;
   };
+  /** When set, the firm-product is locked against catalog drift. */
+  frozen_at: string | null;
   created_at: string;
 }
 

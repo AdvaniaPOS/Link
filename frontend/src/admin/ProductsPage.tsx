@@ -173,6 +173,8 @@ export function ProductsPage() {
                 <Td>
                   {isOwn ? (
                     <Badge tone="green">Eget produkt</Badge>
+                  ) : p.frozen_at ? (
+                    <Badge tone="indigo">Låst — egen versjon</Badge>
                   ) : overrideCount === 0 ? (
                     <Badge tone="slate">Arver alt</Badge>
                   ) : (
@@ -186,7 +188,7 @@ export function ProductsPage() {
                       onClick={() => startEdit(p)}
                       className="text-xs px-2 py-1 rounded border border-slate-300 hover:bg-slate-50"
                     >
-                      {isOwn ? "Rediger" : "Overstyr"}
+                      {isOwn || p.frozen_at ? "Rediger" : "Overstyr"}
                     </button>
                     <button
                       type="button"
@@ -426,9 +428,16 @@ function OverrideOnlyModal({
       title={product ? `Overstyr "${product.name}"` : "Overstyr"}
     >
       <ErrorBanner error={err} />
-      <p className="text-xs text-slate-500 mb-4">
+      <p className="text-xs text-slate-500 mb-2">
         Tom verdi = arv fra katalog. Det som settes her gjelder kun for dette firmaet.
       </p>
+      {product?.frozen_at && (
+        <div className="mb-4 rounded border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-900">
+          Dette produktet er <strong>låst</strong> for firmaet — endringer i den globale
+          katalogen påvirker ikke lenger denne oppføringen. Tomme felter beholder
+          sin nåværende verdi.
+        </div>
+      )}
       <form onSubmit={submit} className="space-y-4">
         {OVERRIDE_FIELDS.map((f) => {
           // When override is null, the effective value equals the catalog default

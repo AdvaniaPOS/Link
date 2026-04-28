@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.products import _freeze
 from app.auth import get_current_user, require_firm_access
 from app.database import get_db
 from app.models import Asset, Firm, FirmProduct, User
@@ -62,6 +63,8 @@ def create_asset(
     )
     if fp is None:
         raise HTTPException(status_code=400, detail="Product not subscribed by this firm")
+    # Attaching the first asset locks the firm-product against catalog drift.
+    _freeze(fp)
     asset = Asset(firm_id=firm_id, **payload.model_dump())
     db.add(asset)
     db.commit()
@@ -90,6 +93,7 @@ def update_asset(
         )
         if fp is None:
             raise HTTPException(status_code=400, detail="Product not subscribed by this firm")
+        _freeze(fp)
     for k, v in data.items():
         setattr(asset, k, v)
     db.commit()

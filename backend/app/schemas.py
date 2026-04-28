@@ -289,6 +289,8 @@ class ProductModelOut(BaseModel):
     warranty_text: str | None = None
     # Override metadata (which fields are firm-specific vs inherited).
     overrides: dict[str, str | None] = Field(default_factory=dict)
+    # When set, the firm-product is locked: catalog edits no longer propagate.
+    frozen_at: datetime | None = None
     created_at: datetime
 
 

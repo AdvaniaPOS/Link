@@ -78,12 +78,18 @@ class FirmProduct(Base):
         UUIDType, ForeignKey("product_catalog.id", ondelete="RESTRICT"), nullable=False
     )
 
-    # Per-firm overrides. NULL = inherit from catalog.
+    # Per-firm overrides. NULL = inherit from catalog (only when not frozen).
     description: Mapped[str | None] = mapped_column(String(2000))
     manual_url: Mapped[str | None] = mapped_column(String(500))
     quick_guide_url: Mapped[str | None] = mapped_column(String(500))
     warranty_url: Mapped[str | None] = mapped_column(String(500))
     warranty_text: Mapped[str | None] = mapped_column(String(4000))
+
+    # Once a firm has either edited an override OR attached its first asset,
+    # the firm-product is "frozen": catalog edits made by super-admin no
+    # longer propagate. Snapshot of the catalog values is stored in the
+    # override columns above at freeze time.
+    frozen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

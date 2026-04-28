@@ -1,5 +1,6 @@
 """Firm-product subscriptions: link firms to global catalog + per-firm overrides."""
 
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,9 +27,36 @@ OVERRIDE_FIELDS = (
 )
 
 
-def _to_effective_dict(fp: FirmProduct) -> dict:
-    """Merge catalog defaults with per-firm overrides into the legacy product shape."""
+def _freeze(fp: FirmProduct) -> None:
+    """Snapshot inheritable catalog values onto the firm product and mark it frozen.
+
+    Once frozen, super-admin edits to the catalog no longer affect this firm.
+    Idempotent — calling on an already-frozen product is a no-op.
+    """
+    if fp.frozen_at is not None:
+        return
     cat = fp.catalog
+    for f in OVERRIDE_FIELDS:
+        if getattr(fp, f) is None:
+            setattr(fp, f, getattr(cat, f))
+    fp.frozen_at = datetime.now(UTC)
+
+
+def _to_effective_dict(fp: FirmProduct) -> dict:
+    """Merge catalog defaults with per-firm overrides into the legacy product shape.
+
+    When the firm-product is frozen, only the firm's own (snapshotted) values
+    are returned for the override fields — catalog drift is ignored.
+    """
+    cat = fp.catalog
+    frozen = fp.frozen_at is not None
+
+    def merged(field: str) -> str | None:
+        own = getattr(fp, field)
+        if frozen:
+            return own
+        return own if own is not None else getattr(cat, field)
+
     return {
         "id": fp.id,
         "firm_id": fp.firm_id,
@@ -39,14 +67,13 @@ def _to_effective_dict(fp: FirmProduct) -> dict:
         "image_url": cat.image_url,
         "background_url": cat.background_url,
         "background_kind": cat.background_kind,
-        "description": fp.description if fp.description is not None else cat.description,
-        "manual_url": fp.manual_url if fp.manual_url is not None else cat.manual_url,
-        "quick_guide_url": (
-            fp.quick_guide_url if fp.quick_guide_url is not None else cat.quick_guide_url
-        ),
-        "warranty_url": fp.warranty_url if fp.warranty_url is not None else cat.warranty_url,
-        "warranty_text": (fp.warranty_text if fp.warranty_text is not None else cat.warranty_text),
+        "description": merged("description"),
+        "manual_url": merged("manual_url"),
+        "quick_guide_url": merged("quick_guide_url"),
+        "warranty_url": merged("warranty_url"),
+        "warranty_text": merged("warranty_text"),
         "overrides": {f: getattr(fp, f) for f in OVERRIDE_FIELDS},
+        "frozen_at": fp.frozen_at,
         "created_at": fp.created_at,
     }
 
@@ -117,11 +144,19 @@ def update_overrides(
     )
     if fp is None:
         raise HTTPException(status_code=404, detail="Firm product not found")
+
+    # Snapshot catalog values onto the firm product so this firm becomes
+    # immune to subsequent super-admin catalog edits.
+    _freeze(fp)
+
     data = payload.model_dump(exclude_unset=True)
     for k, v in data.items():
         if k in OVERRIDE_FIELDS:
-            # Empty string → clear override / inherit from catalog.
-            setattr(fp, k, v if v not in ("", None) else None)
+            # Empty string → keep current snapshot (cannot un-freeze back to
+            # inheriting the live catalog).
+            if v in ("", None):
+                continue
+            setattr(fp, k, v)
     db.commit()
     db.refresh(fp)
     return _to_effective_dict(fp)

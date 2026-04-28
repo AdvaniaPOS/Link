@@ -198,7 +198,8 @@ def change_password(
             detail="Det nye passordet må være forskjellig fra det nåværende.",
         )
     user.password_hash = hash_password(body.new_password)
-    user.password_changed_at = _now()
+    # +1s ensures any token issued in the same second is invalidated.
+    user.password_changed_at = _now() + timedelta(seconds=1)
     db.add(user)
     log_audit(
         db,
@@ -294,7 +295,7 @@ def reset_password(
         raise invalid
 
     user.password_hash = hash_password(body.new_password)
-    user.password_changed_at = _now()
+    user.password_changed_at = _now() + timedelta(seconds=1)
     _reset_lockout(user)
     record.used_at = _now()
     (
