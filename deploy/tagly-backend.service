@@ -26,7 +26,8 @@ TimeoutStopSec=20
 # Hardening
 NoNewPrivileges=true
 ProtectSystem=full
-ProtectHome=read-only
+# Note: ProtectHome is NOT enabled — the app lives under /home and needs RW
+# access to its SQLite database and uploads/ directory.
 PrivateTmp=true
 
 [Install]
