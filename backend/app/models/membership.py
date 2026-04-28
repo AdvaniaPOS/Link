@@ -5,7 +5,7 @@ firms the same login can switch to (festival operators often handle several
 firms with one email).
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, func
@@ -27,7 +27,10 @@ class FirmMembership(Base):
         UUIDType, ForeignKey("firms.id", ondelete="CASCADE"), nullable=False, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
     )
 
     user: Mapped["User"] = relationship(back_populates="memberships")  # noqa: F821

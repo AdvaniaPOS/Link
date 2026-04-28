@@ -6,7 +6,7 @@ Discord role id so that quick-support / ticket notifications can mention the
 on-site team responsible for that area instead of the generic ``@here``.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint, func
@@ -31,7 +31,10 @@ class FirmLocation(Base):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
     )
 
     firm: Mapped["Firm"] = relationship()  # noqa: F821
