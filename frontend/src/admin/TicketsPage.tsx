@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { api, type TicketOut, type TicketStatus } from "./client";
 import { useAuth } from "./AuthContext";
 import { StatusBadge } from "./DashboardPage";
-import { Button, Card, ErrorBanner, PageHeader, Select, Table, Td, Th } from "./ui";
+import { Button, Card, ErrorBanner, Input, PageHeader, Select, Table, Td, Th } from "./ui";
 
 export function TicketsPage() {
   const { firmId } = useParams<{ firmId: string }>();
   const { user } = useAuth();
   const [tickets, setTickets] = useState<TicketOut[]>([]);
   const [filter, setFilter] = useState<TicketStatus | "">("");
+  const [search, setSearch] = useState("");
   const [error, setError] = useState<unknown>(null);
   const [open, setOpen] = useState<TicketOut | null>(null);
 
@@ -37,6 +38,15 @@ export function TicketsPage() {
     }
   }
 
+  const q = search.trim().toLowerCase();
+  const filteredTickets = q
+    ? tickets.filter((t) =>
+        [t.customer_name, t.customer_email, t.customer_phone, t.message]
+          .filter(Boolean)
+          .some((v) => (v as string).toLowerCase().includes(q)),
+      )
+    : tickets;
+
   return (
     <div className="p-4 sm:p-8">
       <PageHeader
@@ -53,8 +63,23 @@ export function TicketsPage() {
       />
       <ErrorBanner error={error} />
 
+      {tickets.length > 0 && (
+        <div className="mb-4 max-w-md">
+          <Input
+            type="search"
+            placeholder="Søk etter kunde, e-post, telefon eller melding …"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      )}
+
       {tickets.length === 0 ? (
         <Card className="p-8 text-center text-slate-500">Ingen henvendelser.</Card>
+      ) : filteredTickets.length === 0 ? (
+        <Card className="p-8 text-center text-slate-500">
+          Ingen treff for «{search}».
+        </Card>
       ) : (
         <Table>
           <thead className="bg-slate-50">
@@ -67,7 +92,7 @@ export function TicketsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {tickets.map((t) => (
+            {filteredTickets.map((t) => (
               <tr key={t.id} className="hover:bg-slate-50">
                 <Td>
                   <StatusBadge status={t.status} />

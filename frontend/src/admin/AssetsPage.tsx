@@ -22,6 +22,7 @@ export function AssetsPage() {
   const [products, setProducts] = useState<ProductModelOut[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [editing, setEditing] = useState<AssetOut | null>(null);
+  const [search, setSearch] = useState("");
   const modal = useToggle();
 
   async function reload() {
@@ -52,6 +53,19 @@ export function AssetsPage() {
   const [presetProduct, setPresetProduct] = useState<ProductModelOut | null>(null);
   const [lastCreated, setLastCreated] = useState<AssetOut | null>(null);
 
+  const q = search.trim().toLowerCase();
+  const filteredItems = q
+    ? items.filter((a) => {
+        const product = productMap.get(a.firm_product_id);
+        return (
+          a.serial_number.toLowerCase().includes(q) ||
+          (a.location ?? "").toLowerCase().includes(q) ||
+          (product?.name ?? "").toLowerCase().includes(q) ||
+          a.id.toLowerCase().includes(q)
+        );
+      })
+    : items;
+
   function openTemplate(p: ProductModelOut) {
     setEditing(null);
     setPresetProduct(p);
@@ -77,6 +91,17 @@ export function AssetsPage() {
         }
       />
       <ErrorBanner error={error} />
+
+      {items.length > 0 && (
+        <div className="mb-4 max-w-md">
+          <Input
+            type="search"
+            placeholder="Søk etter serienummer, lokasjon eller produkt …"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      )}
 
       {products.length === 0 ? (
         <Card className="p-4 mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm">
@@ -123,6 +148,10 @@ export function AssetsPage() {
 
       {items.length === 0 ? (
         <Card className="p-8 text-center text-slate-500">Ingen enheter ennå.</Card>
+      ) : filteredItems.length === 0 ? (
+        <Card className="p-8 text-center text-slate-500">
+          Ingen treff for «{search}».
+        </Card>
       ) : (
         <Table>
           <thead className="bg-slate-50">
@@ -135,7 +164,7 @@ export function AssetsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {items.map((a) => (
+            {filteredItems.map((a) => (
               <tr key={a.id}>
                 <Td>
                   <div className="font-mono font-medium">{a.serial_number}</div>

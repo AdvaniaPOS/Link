@@ -2,7 +2,7 @@
 
 ## Backend service (systemd)
 
-See `betala-backend.service`. Install once, then `systemctl restart betala-backend` after each deploy. This replaces the brittle `nohup uvicorn ... &` pattern.
+See `tagly-backend.service`. Install once, then `systemctl restart tagly-backend` after each deploy. This replaces the brittle `nohup uvicorn ... &` pattern.
 
 ## HSTS (when fronted by HTTPS)
 
@@ -35,7 +35,7 @@ SQLite at `~/Link/backend/betala.db`. Daily snapshot via cron:
 | `LOCKOUT_MINUTES` | optional (default 15) |
 | `PASSWORD_RESET_MINUTES` | optional (default 60) |
 
-After updating `.env`: `sudo systemctl restart betala-backend`.
+After updating `.env`: `sudo systemctl restart tagly-backend`.
 
 ## Running migrations on prod
 
@@ -43,5 +43,5 @@ After updating `.env`: `sudo systemctl restart betala-backend`.
 cd ~/Link/backend
 source .venv/bin/activate
 alembic upgrade head
-sudo systemctl restart betala-backend
+sudo systemctl restart tagly-backend
 ```

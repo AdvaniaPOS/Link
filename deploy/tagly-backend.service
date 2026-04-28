@@ -1,9 +1,9 @@
 # Systemd unit for the Tagly FastAPI backend.
 #
 # Install once on the production host:
-#   sudo cp deploy/betala-backend.service /etc/systemd/system/
+#   sudo cp deploy/tagly-backend.service /etc/systemd/system/
 #   sudo systemctl daemon-reload
-#   sudo systemctl enable --now betala-backend
+#   sudo systemctl enable --now tagly-backend
 #
 # Adjust paths and User= to match your deployment.
 
