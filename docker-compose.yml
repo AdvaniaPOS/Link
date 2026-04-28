@@ -4,15 +4,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: betala
-      POSTGRES_PASSWORD: betala
-      POSTGRES_DB: betala
+      POSTGRES_USER: tagly
+      POSTGRES_PASSWORD: tagly
+      POSTGRES_DB: tagly
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U betala"]
+      test: ["CMD-SHELL", "pg_isready -U tagly"]
       interval: 5s
       timeout: 3s
       retries: 10

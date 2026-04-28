@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 import app.models  # noqa: E402,F401  - register all models on Base
 from app.database import Base, engine  # noqa: E402
 
-DB_PATH = ROOT / "betala.db"
+DB_PATH = ROOT / "tagly.db"
 
 
 def _table_exists(conn: sqlite3.Connection, name: str) -> bool:

@@ -16,10 +16,10 @@ Do **not** add HSTS while the site is still served over plain HTTP — clients w
 
 ## Database backups
 
-SQLite at `~/Link/backend/betala.db`. Daily snapshot via cron:
+SQLite at `~/Link/backend/tagly.db`. Daily snapshot via cron:
 
 ```
-0 3 * * * cp -a /home/poshubadmin/Link/backend/betala.db /home/poshubadmin/backups/betala-$(date +\%F).db && find /home/poshubadmin/backups -name 'betala-*.db' -mtime +30 -delete
+0 3 * * * cp -a /home/poshubadmin/Link/backend/tagly.db /home/poshubadmin/backups/tagly-$(date +\%F).db && find /home/poshubadmin/backups -name 'tagly-*.db' -mtime +30 -delete
 ```
 
 ## Required env vars
@@ -27,7 +27,7 @@ SQLite at `~/Link/backend/betala.db`. Daily snapshot via cron:
 | Variable | Purpose |
 |---|---|
 | `JWT_SECRET` | At least 32 random bytes (e.g. `openssl rand -hex 32`) |
-| `DATABASE_URL` | `sqlite:////home/poshubadmin/Link/backend/betala.db` |
+| `DATABASE_URL` | `sqlite:////home/poshubadmin/Link/backend/tagly.db` |
 | `RESEND_API_KEY` | Resend API key |
 | `RESEND_FROM_EMAIL` / `RESEND_FROM_NAME` | Verified sender |
 | `PUBLIC_BASE_URL` | `https://tagly.poshub.no` (used for password-reset links + QR codes) |
