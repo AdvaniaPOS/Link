@@ -200,16 +200,16 @@ def _notify_discord_ticket(ticket: Ticket) -> None:
         "title": "Ny supporthenvendelse",
         "description": _truncate(f"Ticket `{ticket.id}`", _DISCORD_DESC_MAX),
         "color": 0x4F46E5,
+        "fields": fields,
+        "footer": {"text": "Betala Link"},
+    }
     content, allowed = _mention_for_asset(firm, asset, fallback="")
     payload: dict = {"embeds": [embed]}
     if content:
         payload["content"] = content
     if allowed is not None:
         payload["allowed_mentions"] = allowed
-    _post_discord_webhook(url, payload
-        "footer": {"text": "Betala Link"},
-    }
-    _post_discord_webhook(url, {"embeds": [embed]})
+    _post_discord_webhook(url, payload)
 
 
 def _notify_discord_order(order: AccessoryOrder) -> None:
