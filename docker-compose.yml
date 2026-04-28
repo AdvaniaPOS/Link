@@ -1,4 +1,4 @@
-name: betala-link
+name: tagly
 
 services:
   postgres:

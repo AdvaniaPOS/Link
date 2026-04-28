@@ -38,7 +38,7 @@ settings = get_settings()
 configure_logging(settings.log_level)
 logger = logging.getLogger("app")
 
-app = FastAPI(title="Betala Link API", version="0.2.0")
+app = FastAPI(title="Tagly API", version="0.2.0")
 
 # slowapi wires itself to the app via state + middleware + exception handler.
 app.state.limiter = limiter

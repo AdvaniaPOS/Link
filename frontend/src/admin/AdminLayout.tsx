@@ -76,7 +76,7 @@ export function AdminLayout() {
             </svg>
           )}
         </button>
-        <div className="font-semibold">Betala Link</div>
+        <div className="font-semibold">Tagly</div>
         <div className="w-9" />
       </header>
 
@@ -97,7 +97,7 @@ export function AdminLayout() {
           md:relative md:translate-x-0 md:w-64 md:min-h-screen md:sticky md:top-0 md:z-auto md:max-w-none`}
       >
         <div className="hidden md:block px-5 py-5 border-b border-slate-800">
-          <div className="text-lg font-bold">Betala Link</div>
+          <div className="text-lg font-bold">Tagly</div>
           <div className="text-xs text-slate-400">Admin portal</div>
         </div>
 

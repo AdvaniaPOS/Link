@@ -1,4 +1,4 @@
-# Systemd unit for the Betala Link FastAPI backend.
+# Systemd unit for the Tagly FastAPI backend.
 #
 # Install once on the production host:
 #   sudo cp deploy/betala-backend.service /etc/systemd/system/
@@ -8,7 +8,7 @@
 # Adjust paths and User= to match your deployment.
 
 [Unit]
-Description=Betala Link FastAPI backend
+Description=Tagly FastAPI backend
 After=network.target
 
 [Service]

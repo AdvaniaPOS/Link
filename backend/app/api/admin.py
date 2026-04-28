@@ -38,7 +38,7 @@ def send_test_email(
 
     ticket = Ticket(
         asset_id=asset.id,
-        customer_name="Betala Link – Test",
+        customer_name="Tagly – Test",
         customer_email=reply_to,
         message=(
             "Dette er en testmelding sendt fra admin-panelet via Resend-pipelinen."

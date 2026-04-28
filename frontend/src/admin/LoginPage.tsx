@@ -46,7 +46,7 @@ export function LoginPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50 flex items-center justify-center p-6">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm p-8 space-y-5">
         <div className="text-center space-y-1">
-          <div className="text-xl font-bold text-slate-900">Betala Link</div>
+          <div className="text-xl font-bold text-slate-900">Tagly</div>
           <div className="text-sm text-slate-500">Admin innlogging</div>
         </div>
 
@@ -106,7 +106,7 @@ export function LoginPage() {
             onClick={() => setInfoOpen(true)}
             className="w-full text-sm text-indigo-600 hover:text-indigo-800 font-medium"
           >
-            Hva kan Betala Link?
+            Hva kan Tagly?
           </button>
         </div>
       </div>
@@ -177,7 +177,7 @@ const FEATURES: Feature[] = [
 
 function AboutModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Modal open={open} onClose={onClose} title="Hva kan Betala Link?">
+    <Modal open={open} onClose={onClose} title="Hva kan Tagly?">
       <div className="space-y-5">
         <p className="text-sm text-slate-600">
           Et komplett system for håndtering av betalings­terminaler og POS-utstyr —

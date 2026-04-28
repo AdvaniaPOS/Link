@@ -1,7 +1,7 @@
 [project]
-name = "betala-link-backend"
+name = "tagly-backend"
 version = "0.1.0"
-description = "Betala Link – multi-tenant Digital Product Pass backend"
+description = "Tagly – multi-tenant Digital Product Pass backend"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115",

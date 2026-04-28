@@ -337,7 +337,7 @@ def totp_setup(
     user.totp_enabled = False
     db.add(user)
     db.commit()
-    otpauth = pyotp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="Betala Link")
+    otpauth = pyotp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="Tagly")
     return TotpSetupOut(secret=secret, otpauth_url=otpauth)
 
 

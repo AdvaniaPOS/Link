@@ -1,8 +1,10 @@
-# Betala Link
+# Tagly
 
 Multi-tenant Digital Product Pass system. Skann en QR-kode på en fysisk enhet → kunden får en
 merkevarestylet side med produktinfo og et kontaktskjema som ruter e-posten til riktig firma via
 **Resend**.
+
+> Tjenesten kjører pdd. på domenet `betala.link` (legacy). Nytt produktnavn er **Tagly**.
 
 ## Stack
 

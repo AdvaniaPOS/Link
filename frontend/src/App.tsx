@@ -4,7 +4,7 @@ export default function App() {
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
       <div className="max-w-xl text-center space-y-4">
-        <h1 className="text-3xl font-bold text-slate-900">Betala Link</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Tagly</h1>
         <p className="text-slate-600">
           Multi-tenant Digital Product Pass. Skann en QR-kode for å åpne et produktpass.
         </p>

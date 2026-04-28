@@ -280,7 +280,7 @@ export function ProductPage() {
               )}
             </div>
           ) : null}
-          <div className="opacity-70 pt-2">Betala Link · Digital produktpass</div>
+          <div className="opacity-70 pt-2">Tagly · Digital produktpass</div>
         </footer>
       </div>
     </div>

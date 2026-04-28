@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     resend_api_key: str = Field("re_REPLACE_ME", alias="RESEND_API_KEY")
     resend_from_email: str = Field("onboarding@resend.dev", alias="RESEND_FROM_EMAIL")
-    resend_from_name: str = Field("Betala Link", alias="RESEND_FROM_NAME")
+    resend_from_name: str = Field("Tagly", alias="RESEND_FROM_NAME")
 
     public_base_url: str = Field("https://betala.link", alias="PUBLIC_BASE_URL")
     cors_origins: str = Field("http://localhost:51730", alias="CORS_ORIGINS")

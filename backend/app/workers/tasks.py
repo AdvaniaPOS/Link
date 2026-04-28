@@ -134,7 +134,7 @@ def notify_discord_quick_support(asset: Asset) -> tuple[bool, str | None]:
         "description": "En enhet har bedt om assistanse via Quick support.",
         "color": 0xDC2626,
         "fields": fields,
-        "footer": {"text": "Betala Link · Quick support"},
+        "footer": {"text": "Tagly · Quick support"},
     }
     content, allowed = _mention_for_asset(firm, asset, fallback="@here")
     payload: dict = {"content": content, "embeds": [embed]}
@@ -207,7 +207,7 @@ def _notify_discord_ticket(ticket: Ticket) -> None:
         "description": _truncate(f"Ticket `{ticket.id}`", _DISCORD_DESC_MAX),
         "color": 0x4F46E5,
         "fields": fields,
-        "footer": {"text": "Betala Link"},
+        "footer": {"text": "Tagly"},
     }
     content, allowed = _mention_for_asset(firm, asset, fallback="")
     payload: dict = {"embeds": [embed]}
@@ -284,7 +284,7 @@ def _notify_discord_order(order: AccessoryOrder) -> None:
         "description": _truncate(f"Ordre `{order.id}`", _DISCORD_DESC_MAX),
         "color": 0x10B981,
         "fields": fields,
-        "footer": {"text": "Betala Link"},
+        "footer": {"text": "Tagly"},
     }
     _post_discord_webhook(url, {"embeds": [embed]})
 
@@ -383,7 +383,7 @@ def _build_email_payload(ticket: Ticket) -> dict:
       <pre style="white-space: pre-wrap; background: #f8fafc; padding: 12px; border-radius: 6px;">{_h(ticket.message)}</pre>
       {attachment_html}
       <hr/>
-      <p style="font-size: 12px; color: #64748b;">Sendt via Betala Link · Ticket {ticket.id}</p>
+      <p style="font-size: 12px; color: #64748b;">Sendt via Tagly · Ticket {ticket.id}</p>
     </div>
     """
 
@@ -496,7 +496,7 @@ def _build_order_payload(order: AccessoryOrder) -> dict:
       <p><strong>Telefon:</strong> {_h(order.customer_phone or "-")}</p>
       {note_html}
       <hr/>
-      <p style="font-size: 12px; color: #64748b;">Sendt via Betala Link \u00b7 Ordre {order.id}</p>
+      <p style="font-size: 12px; color: #64748b;">Sendt via Tagly \u00b7 Ordre {order.id}</p>
     </div>
     """
 
@@ -589,7 +589,7 @@ def send_password_reset_email(self, to_email: str, full_name: str, reset_link: s
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;color:#0f172a;">
       <h2 style="color:#0f172a;">Tilbakestill passord</h2>
       <p>Hei {safe_name},</p>
-      <p>Vi mottok en forespørsel om å tilbakestille passordet ditt på Betala&nbsp;Link.</p>
+      <p>Vi mottok en forespørsel om å tilbakestille passordet ditt på Tagly.</p>
       <p>
         <a href="{safe_link}" style="display:inline-block;padding:10px 18px;background:#2563eb;
         color:#fff;text-decoration:none;border-radius:6px;">Velg nytt passord</a>
@@ -602,7 +602,7 @@ def send_password_reset_email(self, to_email: str, full_name: str, reset_link: s
     payload = {
         "from": f"{settings.resend_from_name} <{settings.resend_from_email}>",
         "to": [to_email],
-        "subject": "Tilbakestill passord — Betala Link",
+        "subject": "Tilbakestill passord — Tagly",
         "html": html,
     }
     try:
