@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     resend_from_email: str = Field("onboarding@resend.dev", alias="RESEND_FROM_EMAIL")
     resend_from_name: str = Field("Tagly", alias="RESEND_FROM_NAME")
 
-    public_base_url: str = Field("https://betala.link", alias="PUBLIC_BASE_URL")
+    public_base_url: str = Field("https://tagly.poshub.no", alias="PUBLIC_BASE_URL")
     cors_origins: str = Field("http://localhost:51730", alias="CORS_ORIGINS")
     admin_token: str = Field("dev-admin-token-change-me-please", alias="ADMIN_TOKEN")
     # Dedicated JWT signing secret. Falls back to admin_token when unset so we

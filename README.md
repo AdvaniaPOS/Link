@@ -4,7 +4,7 @@ Multi-tenant Digital Product Pass system. Skann en QR-kode på en fysisk enhet �
 merkevarestylet side med produktinfo og et kontaktskjema som ruter e-posten til riktig firma via
 **Resend**.
 
-> Tjenesten kjører pdd. på domenet `betala.link` (legacy). Nytt produktnavn er **Tagly**.
+> Tjenesten kjører pdd. på domenet `tagly.poshub.no` (Cloudflare Tunnel). Det gamle `betala.link`-domenet er deprecated.
 
 ## Stack
 
@@ -80,18 +80,18 @@ for å skrive ut 12mm-etiketter.
 
 ## Resend-domeneverifisering (før produksjon)
 
-1. Resend dashboard → Domains → Add `betala.link`.
-2. Lim inn SPF, DKIM og DMARC-records i Cloudflare DNS.
+1. Resend dashboard → Domains → Add `poshub.no` (eller en subdomain du eier).
+2. Lim inn SPF, DKIM og DMARC-records hos DNS-leverandøren.
 3. Vent på "Verified" før du sender produksjons-e-post.
-4. Sett `RESEND_FROM_EMAIL=support@betala.link` i `.env`.
+4. Sett `RESEND_FROM_EMAIL=tagly@poshub.no` (eller annen verifisert avsender) i `.env`.
 
 ## Cloudflare Tunnel (eksponer lokalt)
 
 ```bash
 cloudflared tunnel login
-cloudflared tunnel create betala-link
-cloudflared tunnel route dns betala-link betala.link
-cloudflared tunnel run betala-link
+cloudflared tunnel create tagly
+cloudflared tunnel route dns tagly tagly.poshub.no
+cloudflared tunnel run tagly
 ```
 
 ## Vedlegg

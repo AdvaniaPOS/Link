@@ -30,7 +30,7 @@ SQLite at `~/Link/backend/betala.db`. Daily snapshot via cron:
 | `DATABASE_URL` | `sqlite:////home/poshubadmin/Link/backend/betala.db` |
 | `RESEND_API_KEY` | Resend API key |
 | `RESEND_FROM_EMAIL` / `RESEND_FROM_NAME` | Verified sender |
-| `PUBLIC_BASE_URL` | `https://betala.link` (used for password-reset links) |
+| `PUBLIC_BASE_URL` | `https://tagly.poshub.no` (used for password-reset links + QR codes) |
 | `LOCKOUT_MAX_ATTEMPTS` | optional (default 7) |
 | `LOCKOUT_MINUTES` | optional (default 15) |
 | `PASSWORD_RESET_MINUTES` | optional (default 60) |
