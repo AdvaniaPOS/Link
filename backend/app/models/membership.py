@@ -17,9 +17,7 @@ from app.db_types import UUIDType
 
 class FirmMembership(Base):
     __tablename__ = "firm_memberships"
-    __table_args__ = (
-        UniqueConstraint("user_id", "firm_id", name="uq_firm_memberships_user_firm"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "firm_id", name="uq_firm_memberships_user_firm"),)
 
     id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(

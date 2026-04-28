@@ -18,9 +18,7 @@ from app.db_types import UUIDType
 
 class FirmLocation(Base):
     __tablename__ = "firm_locations"
-    __table_args__ = (
-        UniqueConstraint("firm_id", "name", name="uq_firm_locations_firm_name"),
-    )
+    __table_args__ = (UniqueConstraint("firm_id", "name", name="uq_firm_locations_firm_name"),)
 
     id: Mapped[UUID] = mapped_column(UUIDType, primary_key=True, default=uuid4)
     firm_id: Mapped[UUID] = mapped_column(
@@ -30,9 +28,7 @@ class FirmLocation(Base):
     # Optional Discord role id (snowflake) to mention when this location's
     # assets generate notifications. Stored as string to preserve precision.
     discord_role_id: Mapped[str | None] = mapped_column(String(40))
-    sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0, server_default="0"
-    )
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

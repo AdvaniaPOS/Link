@@ -15,7 +15,15 @@ from sqlalchemy.orm import joinedload
 
 from app.config import get_settings
 from app.database import SessionLocal
-from app.models import Accessory, AccessoryOrder, Asset, FirmLocation, FirmProduct, Ticket, TicketStatus
+from app.models import (
+    Accessory,
+    AccessoryOrder,
+    Asset,
+    FirmLocation,
+    FirmProduct,
+    Ticket,
+    TicketStatus,
+)
 from app.workers.celery_app import celery_app
 
 log = logging.getLogger(__name__)
@@ -136,9 +144,7 @@ def notify_discord_quick_support(asset: Asset) -> tuple[bool, str | None]:
         with httpx.Client(timeout=10.0) as client:
             r = client.post(url, json=payload)
         if r.status_code >= 300:
-            log.warning(
-                "Quick support webhook returned %s: %s", r.status_code, r.text[:300]
-            )
+            log.warning("Quick support webhook returned %s: %s", r.status_code, r.text[:300])
             return False, f"Discord svarte {r.status_code}."
         return True, None
     except Exception as exc:  # noqa: BLE001
