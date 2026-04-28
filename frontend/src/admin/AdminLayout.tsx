@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 
 const linkBase =
   "block rounded-md px-3 py-2 text-sm font-medium transition-colors";
@@ -48,6 +49,7 @@ export function AdminLayout() {
   }, [loc.pathname]);
 
   const closeDrawer = () => setDrawerOpen(false);
+  const [pwOpen, setPwOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-100">
@@ -154,6 +156,12 @@ export function AdminLayout() {
             {user?.role === "super_admin" ? "Super Admin" : "Firm Admin"}
           </div>
           <button
+            onClick={() => setPwOpen(true)}
+            className="w-full bg-slate-800 hover:bg-slate-700 rounded-md py-1.5 text-white"
+          >
+            Endre passord
+          </button>
+          <button
             onClick={() => {
               logout();
               nav("/admin/login");
@@ -168,6 +176,8 @@ export function AdminLayout() {
       <main className="flex-1 overflow-y-auto min-w-0">
         <Outlet />
       </main>
+
+      <ChangePasswordModal open={pwOpen} onClose={() => setPwOpen(false)} />
     </div>
   );
 }

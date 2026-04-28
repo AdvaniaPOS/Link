@@ -101,6 +101,11 @@ class UserUpdateIn(BaseModel):
     is_active: bool | None = None
 
 
+class ChangePasswordIn(BaseModel):
+    current_password: str = Field(..., min_length=1, max_length=128)
+    new_password: str = Field(..., min_length=10, max_length=128)
+
+
 # ---------- management: firms ----------
 
 

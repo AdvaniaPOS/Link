@@ -229,6 +229,8 @@ export const api = {
     }),
   me: () => http.get<UserOut>("/auth/me"),
   meFirms: () => http.get<MeFirmOut[]>("/auth/me/firms"),
+  changePassword: (current_password: string, new_password: string) =>
+    http.post<void>("/auth/change-password", { current_password, new_password }),
 
   // firms
   listFirms: () => http.get<FirmOut[]>("/admin/firms"),
