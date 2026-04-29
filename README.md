@@ -77,8 +77,8 @@ deploy/
 frontend/
   src/
     admin/              # hele admin-portalen (se tabell over)
-    pages/              # ProductPage (offentlig kundevisning), AdminLabels, AdminTestEmail
-    components/         # Label.tsx (12mm Brother P-touch), SupportForm.tsx
+    pages/              # ProductPage (offentlig kundevisning), AdminLabels
+    components/         # Label.tsx (12mm Brother P-touch PT-2100), SupportForm.tsx
 docker-compose.yml      # Postgres + Redis (kun for dev)
 ```
 

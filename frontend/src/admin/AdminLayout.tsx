@@ -148,7 +148,6 @@ export function AdminLayout() {
           />
           <Item to="/admin/users" label="Brukere" onNavigate={closeDrawer} />
           <Item to="/admin/labels" label="Etiketter" onNavigate={closeDrawer} />
-          <Item to="/admin/test-email" label="Test e-post" onNavigate={closeDrawer} />
           {isSuper && <Item to="/admin/audit" label="Audit-logg" onNavigate={closeDrawer} />}
           <Item to="/admin/profile" label="Min profil" onNavigate={closeDrawer} />
         </nav>

@@ -6,7 +6,6 @@ import App from "./App";
 import "./index.css";
 import { ProductPage } from "./pages/ProductPage";
 import { AdminLabels } from "./pages/AdminLabels";
-import { AdminTestEmail } from "./pages/AdminTestEmail";
 import { AuthProvider } from "./admin/AuthContext";
 import { ProtectedRoute } from "./admin/ProtectedRoute";
 import { AdminLayout } from "./admin/AdminLayout";
@@ -58,7 +57,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/admin/firms/:firmId/tickets" element={<TicketsPage />} />
               <Route path="/admin/users" element={<UsersPage />} />
               <Route path="/admin/labels" element={<AdminLabels />} />
-              <Route path="/admin/test-email" element={<AdminTestEmail />} />
             </Route>
           </Route>
         </Routes>
