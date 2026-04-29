@@ -63,7 +63,7 @@ export function UploadField({
     <Field label={label} hint={hint}>
       <div className="flex gap-2 items-stretch">
         <Input
-          type="url"
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Lim inn URL eller last opp →"
