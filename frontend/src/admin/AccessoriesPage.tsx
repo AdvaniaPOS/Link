@@ -23,6 +23,7 @@ import {
   Th,
   useToggle,
 } from "./ui";
+import { UploadField } from "./UploadField";
 
 export function AccessoriesPage() {
   const { firmId = "" } = useParams<{ firmId: string }>();
@@ -360,20 +361,13 @@ function AccessoryModal({
             </Select>
           </Field>
         </div>
-        <Field label="Bilde-URL">
-          <Input
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://…"
-          />
-        </Field>
-        {imageUrl && (
-          <img
-            src={imageUrl}
-            alt=""
-            className="h-20 w-20 object-contain border border-slate-200 rounded-lg bg-white"
-          />
-        )}
+        <UploadField
+          label="Bilde"
+          kind="image"
+          preview
+          value={imageUrl}
+          onChange={setImageUrl}
+        />
         <Field label="Beskrivelse">
           <Textarea
             rows={2}

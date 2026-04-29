@@ -23,6 +23,7 @@ import {
   Th,
   useToggle,
 } from "./ui";
+import { UploadField } from "./UploadField";
 
 type OverrideKey =
   | "description"
@@ -464,11 +465,11 @@ function OverrideOnlyModal({
                     placeholder={placeholder}
                   />
                 ) : (
-                  <Input
+                  <UploadField
+                    label=""
+                    kind="document"
                     value={vals[f.key]}
-                    onChange={(e) => setVals((s) => ({ ...s, [f.key]: e.target.value }))}
-                    type="url"
-                    placeholder={placeholder}
+                    onChange={(v) => setVals((s) => ({ ...s, [f.key]: v }))}
                   />
                 )}
                 {!inherited && (
@@ -623,13 +624,13 @@ function NewProductModal({
             </Select>
           </Field>
         </div>
-        <Field label="Bilde-URL">
-          <Input
-            type="url"
-            value={vals.image_url ?? ""}
-            onChange={(e) => set("image_url", e.target.value)}
-          />
-        </Field>
+        <UploadField
+          label="Bilde"
+          kind="image"
+          preview
+          value={vals.image_url ?? ""}
+          onChange={(v) => set("image_url", v)}
+        />
         <Field label="Beskrivelse">
           <Textarea
             value={vals.description ?? ""}
@@ -638,29 +639,26 @@ function NewProductModal({
           />
         </Field>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Manual-URL">
-            <Input
-              type="url"
-              value={vals.manual_url ?? ""}
-              onChange={(e) => set("manual_url", e.target.value)}
-            />
-          </Field>
-          <Field label="Hurtigveiledning-URL">
-            <Input
-              type="url"
-              value={vals.quick_guide_url ?? ""}
-              onChange={(e) => set("quick_guide_url", e.target.value)}
-            />
-          </Field>
+          <UploadField
+            label="Manual (PDF)"
+            kind="document"
+            value={vals.manual_url ?? ""}
+            onChange={(v) => set("manual_url", v)}
+          />
+          <UploadField
+            label="Hurtigveiledning (PDF)"
+            kind="document"
+            value={vals.quick_guide_url ?? ""}
+            onChange={(v) => set("quick_guide_url", v)}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Garanti-URL">
-            <Input
-              type="url"
-              value={vals.warranty_url ?? ""}
-              onChange={(e) => set("warranty_url", e.target.value)}
-            />
-          </Field>
+          <UploadField
+            label="Garanti (PDF)"
+            kind="document"
+            value={vals.warranty_url ?? ""}
+            onChange={(v) => set("warranty_url", v)}
+          />
           <Field label="Garantitekst">
             <Textarea
               value={vals.warranty_text ?? ""}
@@ -797,20 +795,13 @@ function EditOwnProductModal({
             </Select>
           </Field>
         </div>
-        <Field label="Bilde-URL">
-          <Input
-            type="url"
-            value={vals.image_url ?? ""}
-            onChange={(e) => set("image_url", e.target.value)}
-          />
-          {vals.image_url ? (
-            <img
-              src={vals.image_url}
-              alt=""
-              className="mt-2 h-20 w-20 object-contain rounded bg-slate-50 border border-slate-200"
-            />
-          ) : null}
-        </Field>
+        <UploadField
+          label="Bilde"
+          kind="image"
+          preview
+          value={vals.image_url ?? ""}
+          onChange={(v) => set("image_url", v)}
+        />
         <Field label="Beskrivelse">
           <Textarea
             value={vals.description ?? ""}
@@ -819,29 +810,26 @@ function EditOwnProductModal({
           />
         </Field>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Manual-URL">
-            <Input
-              type="url"
-              value={vals.manual_url ?? ""}
-              onChange={(e) => set("manual_url", e.target.value)}
-            />
-          </Field>
-          <Field label="Hurtigveiledning-URL">
-            <Input
-              type="url"
-              value={vals.quick_guide_url ?? ""}
-              onChange={(e) => set("quick_guide_url", e.target.value)}
-            />
-          </Field>
+          <UploadField
+            label="Manual (PDF)"
+            kind="document"
+            value={vals.manual_url ?? ""}
+            onChange={(v) => set("manual_url", v)}
+          />
+          <UploadField
+            label="Hurtigveiledning (PDF)"
+            kind="document"
+            value={vals.quick_guide_url ?? ""}
+            onChange={(v) => set("quick_guide_url", v)}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="Garanti-URL">
-            <Input
-              type="url"
-              value={vals.warranty_url ?? ""}
-              onChange={(e) => set("warranty_url", e.target.value)}
-            />
-          </Field>
+          <UploadField
+            label="Garanti (PDF)"
+            kind="document"
+            value={vals.warranty_url ?? ""}
+            onChange={(v) => set("warranty_url", v)}
+          />
           <Field label="Garantitekst">
             <Textarea
               value={vals.warranty_text ?? ""}

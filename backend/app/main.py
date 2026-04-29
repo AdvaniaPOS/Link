@@ -28,6 +28,7 @@ from app.api.memberships import router as memberships_router
 from app.api.products import router as products_router
 from app.api.public import router as public_router
 from app.api.tickets import router as tickets_router
+from app.api.uploads import router as uploads_router
 from app.api.users import router as users_router
 from app.config import get_settings
 from app.logging_config import configure_logging
@@ -113,6 +114,7 @@ app.include_router(tickets_router, prefix=API_PREFIX)
 app.include_router(users_router, prefix=API_PREFIX)
 app.include_router(accessories_router, prefix=API_PREFIX)
 app.include_router(accessory_orders_router, prefix=API_PREFIX)
+app.include_router(uploads_router, prefix=API_PREFIX)
 
 # Serve uploaded attachments (support photos) so they can be referenced from
 # emails and viewed in the admin UI.

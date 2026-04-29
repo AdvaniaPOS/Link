@@ -36,7 +36,9 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  if (!headers.has("Content-Type") && init.body) {
+  // Only set JSON content-type for plain bodies; FormData needs the browser
+  // to add its own multipart boundary.
+  if (!headers.has("Content-Type") && init.body && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
   const token = tokenStore.get();
@@ -78,6 +80,11 @@ export const http = {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body,
     });
+  },
+  postFile: <T>(p: string, file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return request<T>(p, { method: "POST", body: fd });
   },
 };
 
@@ -269,6 +276,12 @@ export const api = {
   verify2fa: (code: string) => http.post<void>("/auth/2fa/verify", { code }),
   disable2fa: (current_password: string) =>
     http.post<void>("/auth/2fa/disable", { current_password }),
+
+  uploadFile: (file: File) =>
+    http.postFile<{ url: string; filename: string; content_type: string; size: string }>(
+      "/admin/uploads",
+      file,
+    ),
   listAuditLogs: (params: {
     action?: string;
     actor_email?: string;

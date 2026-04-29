@@ -19,6 +19,7 @@ import {
   Th,
   useToggle,
 } from "./ui";
+import { UploadField } from "./UploadField";
 
 const CATEGORIES = [
   { value: "terminal", label: "Terminal" },
@@ -259,22 +260,23 @@ function CatalogModal({
             </Select>
           </Field>
         </div>
-        <Field label="Bilde-URL">
-          <Input
-            type="url"
+        <Field label="Bilde">
+          <UploadField
+            label=""
+            kind="image"
+            preview
             value={vals.image_url ?? ""}
-            onChange={(e) => set("image_url", e.target.value)}
+            onChange={(v) => set("image_url", v)}
           />
         </Field>
         <div className="grid grid-cols-[1fr_auto] gap-3">
-          <Field label="Bakgrunns-URL (valgfritt)" hint="Vises bak produktsiden. Bilde eller video.">
-            <Input
-              type="url"
-              value={vals.background_url ?? ""}
-              onChange={(e) => set("background_url", e.target.value)}
-              placeholder="https://..."
-            />
-          </Field>
+          <UploadField
+            label="Bakgrunn (valgfritt)"
+            hint="Vises bak produktsiden. Bilde eller video."
+            kind={vals.background_kind === "video" ? "video" : "image"}
+            value={vals.background_url ?? ""}
+            onChange={(v) => set("background_url", v)}
+          />
           <Field label="Type">
             <Select
               value={vals.background_kind ?? "image"}
@@ -293,28 +295,25 @@ function CatalogModal({
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Manual-URL">
-            <Input
-              type="url"
-              value={vals.manual_url ?? ""}
-              onChange={(e) => set("manual_url", e.target.value)}
-            />
-          </Field>
-          <Field label="Hurtigveiledning-URL">
-            <Input
-              type="url"
-              value={vals.quick_guide_url ?? ""}
-              onChange={(e) => set("quick_guide_url", e.target.value)}
-            />
-          </Field>
-        </div>
-        <Field label="Garanti-URL">
-          <Input
-            type="url"
-            value={vals.warranty_url ?? ""}
-            onChange={(e) => set("warranty_url", e.target.value)}
+          <UploadField
+            label="Manual (PDF)"
+            kind="document"
+            value={vals.manual_url ?? ""}
+            onChange={(v) => set("manual_url", v)}
           />
-        </Field>
+          <UploadField
+            label="Hurtigveiledning (PDF)"
+            kind="document"
+            value={vals.quick_guide_url ?? ""}
+            onChange={(v) => set("quick_guide_url", v)}
+          />
+        </div>
+        <UploadField
+          label="Garanti (PDF)"
+          kind="document"
+          value={vals.warranty_url ?? ""}
+          onChange={(v) => set("warranty_url", v)}
+        />
         <Field label="Garantitekst">
           <Textarea
             value={vals.warranty_text ?? ""}
