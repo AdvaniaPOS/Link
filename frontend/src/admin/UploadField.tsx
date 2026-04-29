@@ -59,6 +59,13 @@ export function UploadField({
 
   const isImage = preview && value && /\.(jpe?g|png|webp|gif|svg)(\?|$)/i.test(value);
 
+  // Server-CSP tillater bare bilder/filer fra samme opphav. Eksterne URL-er blokkeres
+  // av nettleseren og må derfor lastes opp lokalt i stedet.
+  const isExternal = !!value && /^https?:\/\//i.test(value) && !value.startsWith(window.location.origin);
+  const externalWarning = isExternal
+    ? "Eksterne URL-er er ikke støttet av sikkerhetspolicyen. Last opp filen i stedet."
+    : null;
+
   return (
     <Field label={label} hint={hint}>
       <div className="flex gap-2 items-stretch">
@@ -91,6 +98,7 @@ export function UploadField({
         )}
       </div>
       {err && <div className="text-xs text-red-600 mt-1">{err}</div>}
+      {externalWarning && <div className="text-xs text-amber-700 mt-1">{externalWarning}</div>}
       {isImage && (
         <img
           src={value}
