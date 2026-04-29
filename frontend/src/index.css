@@ -23,6 +23,15 @@
     display: none !important;
   }
 
+  /* Strip all padding/margin from wrappers so they don't generate extra blank pages
+     on the tiny 12mm tape. */
+  body,
+  body > #root,
+  body > #root * {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   /* Hide everything by default, then re-show only labels. */
   body * {
     visibility: hidden;
