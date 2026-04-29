@@ -14,15 +14,16 @@ export function DashboardPage() {
     if (!user) return;
     (async () => {
       try {
-        const f = await api.listFirms();
-        setFirms(f);
-        const t =
-          user.role === "super_admin"
-            ? await api.listAllTickets()
-            : user.firm_id
-              ? await api.listFirmTickets(user.firm_id)
-              : [];
-        setTickets(t);
+        if (user.role === "super_admin") {
+          const f = await api.listFirms();
+          setFirms(f);
+          const t = await api.listAllTickets();
+          setTickets(t);
+        } else {
+          setFirms([]);
+          const t = user.firm_id ? await api.listFirmTickets(user.firm_id) : [];
+          setTickets(t);
+        }
       } catch (e) {
         setError(e);
       }
@@ -35,13 +36,19 @@ export function DashboardPage() {
     failed: tickets.filter((t) => t.status === "failed").length,
   };
 
+  const isSuper = user?.role === "super_admin";
+
   return (
     <div className="p-4 sm:p-8">
       <PageHeader title={`Hei, ${user?.full_name ?? user?.email}`} />
       <ErrorBanner error={error} />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Stat label={user?.role === "super_admin" ? "Firmaer" : "Mitt firma"} value={firms.length} />
+      <div
+        className={`grid grid-cols-1 gap-4 mb-8 ${
+          isSuper ? "md:grid-cols-4" : "md:grid-cols-3"
+        }`}
+      >
+        {isSuper && <Stat label="Firmaer" value={firms.length} />}
         <Stat label="Henvendelser totalt" value={tickets.length} />
         <Stat label="Sendt" value={counts.sent} tone="green" />
         <Stat label="Feilet" value={counts.failed} tone="red" />
