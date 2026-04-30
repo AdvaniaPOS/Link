@@ -2,11 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Brother P-touch 2100 — 12 mm TZe tape, horizontal layout.
+/* ---------------------------------------------------------------------------
+   Dark mode overrides.
+   Strategy: instead of decorating every component with `dark:` variants, we
+   remap the most-used utility classes (bg-white, bg-slate-50/100/..., text-
+   slate-*, border-slate-*) to dark equivalents when <html class="dark"> is set
+   by ThemeContext. Tailwind's `dark` variant uses class-mode so this layer
+   only kicks in for users who explicitly chose dark / OS-dark.
+   --------------------------------------------------------------------------- */
+@layer utilities {
+  .dark body { color-scheme: dark; }
+
+  /* Page / surface backgrounds */
+  .dark .bg-white { background-color: rgb(30 41 59); }                /* slate-800 */
+  .dark .bg-slate-50 { background-color: rgb(15 23 42); }             /* slate-900 */
+  .dark .bg-slate-100 { background-color: rgb(15 23 42); }            /* slate-900 */
+  .dark .bg-slate-200 { background-color: rgb(30 41 59); }            /* slate-800 */
+  .dark .bg-slate-50\/50 { background-color: rgb(15 23 42 / 0.5); }
+  .dark .hover\:bg-slate-50:hover { background-color: rgb(51 65 85); } /* slate-700 */
+  .dark .hover\:bg-slate-100:hover { background-color: rgb(51 65 85); }
+  .dark .hover\:bg-slate-200:hover { background-color: rgb(71 85 105); } /* slate-600 */
+
+  /* Subtle tinted surfaces (alerts, badges) — keep readable in dark */
+  .dark .bg-red-50 { background-color: rgb(127 29 29 / 0.35); }
+  .dark .bg-emerald-50 { background-color: rgb(6 78 59 / 0.35); }
+  .dark .bg-amber-50 { background-color: rgb(120 53 15 / 0.35); }
+  .dark .bg-indigo-50 { background-color: rgb(49 46 129 / 0.4); }
+  .dark .bg-blue-50 { background-color: rgb(30 58 138 / 0.35); }
+
+  /* Badge backgrounds (lighter tints used by Badge component) */
+  .dark .bg-slate-100.text-slate-700 { background-color: rgb(51 65 85); color: rgb(226 232 240); }
+  .dark .bg-emerald-100 { background-color: rgb(6 95 70 / 0.5); }
+  .dark .bg-red-100 { background-color: rgb(153 27 27 / 0.5); }
+  .dark .bg-amber-100 { background-color: rgb(146 64 14 / 0.5); }
+  .dark .bg-indigo-100 { background-color: rgb(67 56 202 / 0.55); }
+
+  /* Text colors */
+  .dark .text-slate-900 { color: rgb(241 245 249); }                  /* slate-100 */
+  .dark .text-slate-800 { color: rgb(226 232 240); }                  /* slate-200 */
+  .dark .text-slate-700 { color: rgb(203 213 225); }                  /* slate-300 */
+  .dark .text-slate-600 { color: rgb(148 163 184); }                  /* slate-400 */
+  .dark .text-slate-500 { color: rgb(148 163 184); }
+  .dark .text-slate-400 { color: rgb(100 116 139); }
+  .dark .hover\:text-slate-900:hover { color: rgb(241 245 249); }
+  .dark .hover\:text-slate-600:hover { color: rgb(203 213 225); }
+
+  /* Tinted text */
+  .dark .text-red-800 { color: rgb(252 165 165); }
+  .dark .text-red-700 { color: rgb(252 165 165); }
+  .dark .text-red-600 { color: rgb(248 113 113); }
+  .dark .text-emerald-700 { color: rgb(110 231 183); }
+  .dark .text-amber-800 { color: rgb(252 211 77); }
+  .dark .text-amber-700 { color: rgb(252 211 77); }
+  .dark .text-indigo-700 { color: rgb(165 180 252); }
+  .dark .text-indigo-600 { color: rgb(165 180 252); }
+  .dark .text-blue-700 { color: rgb(147 197 253); }
+
+  /* Borders */
+  .dark .border-slate-200 { border-color: rgb(51 65 85); }            /* slate-700 */
+  .dark .border-slate-300 { border-color: rgb(71 85 105); }           /* slate-600 */
+  .dark .border-slate-100 { border-color: rgb(51 65 85); }
+  .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(51 65 85); }
+  .dark .border-red-200 { border-color: rgb(127 29 29); }
+  .dark .border-emerald-200 { border-color: rgb(6 78 59); }
+  .dark .border-amber-200 { border-color: rgb(120 53 15); }
+
+  /* Form controls — Tailwind utility input borders use slate-300 already remapped above.
+     Make native dropdowns and number inputs legible. */
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background-color: rgb(15 23 42);   /* slate-900 */
+    color: rgb(241 245 249);
+    border-color: rgb(71 85 105);
+  }
+  .dark input::placeholder,
+  .dark textarea::placeholder { color: rgb(100 116 139); }
+  .dark option { background-color: rgb(15 23 42); color: rgb(241 245 249); }
+
+  /* Code / mono blocks shown in audit log etc */
+  .dark .bg-slate-900 { background-color: rgb(2 6 23); }              /* slate-950 */
+}
+
+/* Base body background — keeps the rest of the page (e.g. <html>) dark
+   even before the per-page Tailwind classes load. */
+html.dark { background-color: rgb(15 23 42); color: rgb(226 232 240); }
+
+/* ---------------------------------------------------------------------------
+   Brother P-touch 2100 — 12 mm TZe tape, horizontal layout.
    Tape physical width = 12 mm; printable area ≈ 9 mm (driver leaves ~1.5 mm margin top/bottom).
    Each .label renders on its own tape page so multiple QR-koder kan skrives ut i én jobb.
    Lengde styres via CSS-variabelen --label-length (default 60mm). */
 @media print {
+  /* Force a clean white sheet for printing regardless of UI theme. */
+  html, html.dark { background: #fff !important; color: #000 !important; }
+
   @page {
     size: var(--label-length, 60mm) 12mm;
     margin: 0;

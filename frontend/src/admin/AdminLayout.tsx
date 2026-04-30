@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { ThemeToggle } from "./ThemeContext";
 
 const linkBase =
   "block rounded-md px-3 py-2 text-sm font-medium transition-colors";
@@ -157,6 +158,7 @@ export function AdminLayout() {
           <div className="uppercase tracking-wide text-[10px]">
             {user?.role === "super_admin" ? "Super Admin" : "Firm Admin"}
           </div>
+          <ThemeToggle className="w-full bg-slate-800 hover:bg-slate-700 rounded-md py-1.5 text-white" />
           <button
             onClick={() => setPwOpen(true)}
             className="w-full bg-slate-800 hover:bg-slate-700 rounded-md py-1.5 text-white"

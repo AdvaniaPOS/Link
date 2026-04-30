@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { ApiError } from "./client";
+import { FloatingThemeToggle } from "./ThemeContext";
 import { Button, ErrorBanner, Field, Input, Modal } from "./ui";
 
 export function LoginPage() {
@@ -44,6 +45,7 @@ export function LoginPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50 flex items-center justify-center p-6">
+      <FloatingThemeToggle />
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm p-8 space-y-5">
         <div className="text-center space-y-1">
           <div className="text-xl font-bold text-slate-900">Tagly</div>
